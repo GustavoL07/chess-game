@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Chess } from "chess.js";
 import {
   getPieceImage,
   getSquareColor,
@@ -14,8 +13,7 @@ function squareToPosition(square) {
   };
 }
 
-export default function Board() {
-  const [game, setGame] = useState(new Chess());
+export default function Board({ game, onMove }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [selectedPiece, setSelectedPiece] = useState(null);
 
@@ -54,6 +52,8 @@ export default function Board() {
         setAnim((prev) => ({ id: prev.id + 1, moves }));
         setSelectedSquare(null);
         setSelectedPiece(null);
+
+        onMove();
         return;
       }
     } catch (error) {}
@@ -94,7 +94,6 @@ export default function Board() {
                 .moves({ square: selectedSquare, verbose: true })
                 .map((m) => m.to)
             : [];
-          console.log("Movable squares:", movableSquares);
 
           return (
             <div
