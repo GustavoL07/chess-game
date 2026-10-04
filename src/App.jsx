@@ -77,7 +77,7 @@ export default function App() {
   const fen = fenHistory[currentPlay];
 
   return (
-    <div className="App">
+    <div className="app">
       <Board
         game={game}
         fen={fen}
