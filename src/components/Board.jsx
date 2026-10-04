@@ -4,26 +4,25 @@ import {
   getPieceImage,
   getSquareColor,
   toSquareNotation,
+  squareToPosition,
 } from "../utils/pieces";
 import "./Board.css";
 
-function squareToPosition(square) {
-  return {
-    row: 8 - parseInt(square[1], 10),
-    col: square.charCodeAt(0) - 97,
-  };
-}
-
-export default function Board({ game, fen, onMove, viewOnly }) {
+export default function Board({
+  game,
+  fen,
+  onMove,
+  viewOnly,
+  locked,
+  lastMove,
+}) {
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [selectedPiece, setSelectedPiece] = useState(null);
-  const [anim, setAnim] = useState({ id: 0, moves: [] });
 
   useEffect(() => {
     if (viewOnly) {
       setSelectedSquare(null);
       setSelectedPiece(null);
-      setAnim((prev) => ({ ...prev, moves: [] }));
     }
   }, [viewOnly]);
 
@@ -37,7 +36,7 @@ export default function Board({ game, fen, onMove, viewOnly }) {
   const turn = displayGame.turn();
 
   function handleSquareClick(rowIndex, colIndex) {
-    if (viewOnly) return;
+    if (viewOnly || locked) return;
 
     const targetSquare = toSquareNotation(rowIndex, colIndex);
     const piece = game.get(targetSquare);
@@ -64,13 +63,9 @@ export default function Board({ game, fen, onMove, viewOnly }) {
       });
 
       if (move) {
-        const moves = [{ from: move.from, to: move.to }];
-
-        setAnim((prev) => ({ id: prev.id + 1, moves }));
         setSelectedSquare(null);
         setSelectedPiece(null);
-
-        onMove();
+        onMove(move);
         return;
       }
     } catch (error) {}
@@ -91,7 +86,9 @@ export default function Board({ game, fen, onMove, viewOnly }) {
           const square = toSquareNotation(rowIndex, colIndex);
           const isSelected = selectedSquare === square;
 
-          const movement = anim.moves.find((m) => m.to === square);
+          const movement =
+            !viewOnly && lastMove && lastMove.to === square ? lastMove : null;
+
           let moveStyle;
           if (movement && piece) {
             const from = squareToPosition(movement.from);
@@ -112,7 +109,7 @@ export default function Board({ game, fen, onMove, viewOnly }) {
             >
               {piece && (
                 <img
-                  key={moveStyle ? `moved-${anim.id}` : "piece"}
+                  key={moveStyle ? `moved-${lastMove.id}` : "piece"}
                   src={getPieceImage(piece)}
                   style={moveStyle}
                   className={`${isSelected ? "selected-piece" : ""} ${moveStyle ? "moving" : ""} ${isInCheck ? "in-check" : ""}`}

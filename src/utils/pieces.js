@@ -41,3 +41,10 @@ export function toSquareNotation(rowIndex, colIndex) {
   const rowNumber = 8 - rowIndex;
   return `${colLetter}${rowNumber}`;
 }
+
+export function squareToPosition(square) {
+  return {
+    row: 8 - parseInt(square[1], 10),
+    col: square.charCodeAt(0) - 97,
+  };
+}
