@@ -1,9 +1,11 @@
+import "./App.css";
 import { useState, useEffect, useRef } from "react";
-import { Chess } from "chess.js";
 import { createEngine } from "./utils/engine";
+import { Chess } from "chess.js";
 import Board from "./components/Board";
 import History from "./components/History";
-import "./App.css";
+import GameStart from "./components/GameStart";
+import GameEnd from "./components/GameEnd";
 
 export default function App() {
   const [game] = useState(() => new Chess());
@@ -17,13 +19,19 @@ export default function App() {
   const [lastMove, setLastMove] = useState(null);
   const engineRef = useRef(null);
 
+  const [started, setStarted] = useState(false);
+  const [endDismissed, setEndDismissed] = useState(false);
+
+  const [playerColor, setPlayerColor] = useState("w");
+
+  //Load engine
   useEffect(() => {
     engineRef.current = createEngine();
     return () => engineRef.current?.terminate();
   }, []);
 
   useEffect(() => {
-    if (game.turn() !== "b" || game.isGameOver()) return;
+    if (!started || game.turn() === playerColor || game.isGameOver()) return;
 
     let cancelled = false;
     setThinking(true);
@@ -45,7 +53,6 @@ export default function App() {
         })
         .catch((error) => {
           if (cancelled) return;
-          console.error("Falha ao obter a jogada da IA:", error);
           setThinking(false);
         });
     }, aiDelay);
@@ -54,7 +61,7 @@ export default function App() {
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [history, level, aiDelay]);
+  }, [history, level, aiDelay, started, playerColor]);
 
   function handleMove(move) {
     setHistory(game.history());
@@ -72,19 +79,67 @@ export default function App() {
     setViewPlay(clamped === history.length ? null : clamped);
   }
 
+  function handleStart({ color, level }) {
+    const resolved =
+      color === "random" ? (Math.random() < 0.5 ? "w" : "b") : color;
+
+    setPlayerColor(resolved);
+    setLevel(level);
+    setStarted(true);
+  }
+
+  function getResult(game) {
+    if (game.isCheckmate()) {
+      return { type: "win", winner: game.turn() === "w" ? "b" : "w" };
+    }
+    if (game.isStalemate()) return { type: "draw", reason: "stalemate" };
+    if (game.isInsufficientMaterial())
+      return { type: "draw", reason: "insufficient" };
+    if (game.isThreefoldRepetition())
+      return { type: "draw", reason: "threefold" };
+    if (game.isDraw()) return { type: "draw", reason: "fiftymove" };
+    return null;
+  }
+
+  function handleNewGame() {
+    game.reset();
+    setHistory([]);
+    setFenHistory([game.fen()]);
+    setViewPlay(null);
+    setLastMove(null);
+    setThinking(false);
+    setEndDismissed(false);
+    engineRef.current?.newGame();
+
+    setStarted(false); // GameStart modal will be shown again
+  }
+
   const currentPlay = viewPlay ?? history.length;
   const viewOnly = viewPlay !== null;
   const fen = fenHistory[currentPlay];
 
+  const result = game.isGameOver() ? getResult(game) : null;
+
   return (
     <div className="app">
+      {!started && <GameStart onStart={handleStart} />}
+
+      {started && result && !endDismissed && (
+        <GameEnd
+          result={result}
+          playerColor={playerColor}
+          onNewGame={handleNewGame}
+        />
+      )}
+
       <Board
         game={game}
         fen={fen}
         onMove={handleMove}
         viewOnly={viewOnly}
-        locked={thinking || game.turn() !== "w"}
+        locked={thinking || game.turn() !== playerColor}
         lastMove={lastMove}
+        flipped={playerColor === "b"}
       />
       <History moves={history} currentPlay={currentPlay} onSelect={goToPlay} />
     </div>

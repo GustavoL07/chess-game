@@ -15,6 +15,7 @@ export default function Board({
   viewOnly,
   locked,
   lastMove,
+  flipped,
 }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [selectedPiece, setSelectedPiece] = useState(null);
@@ -34,6 +35,10 @@ export default function Board({
     : [];
   const inCheck = displayGame.inCheck();
   const turn = displayGame.turn();
+
+  const order = [0, 1, 2, 3, 4, 5, 6, 7];
+  const indices = flipped ? [...order].reverse() : order;
+  const dir = flipped ? -1 : 1;
 
   function handleSquareClick(rowIndex, colIndex) {
     if (viewOnly || locked) return;
@@ -81,8 +86,9 @@ export default function Board({
 
   return (
     <div className="board">
-      {board.map((row, rowIndex) =>
-        row.map((piece, colIndex) => {
+      {indices.map((rowIndex) =>
+        indices.map((colIndex) => {
+          const piece = board[rowIndex][colIndex];
           const square = toSquareNotation(rowIndex, colIndex);
           const isSelected = selectedSquare === square;
 
@@ -93,8 +99,8 @@ export default function Board({
           if (movement && piece) {
             const from = squareToPosition(movement.from);
             moveStyle = {
-              "--dx": from.col - colIndex,
-              "--dy": from.row - rowIndex,
+              "--dx": (from.col - colIndex) * dir,
+              "--dy": (from.row - rowIndex) * dir,
             };
           }
 
