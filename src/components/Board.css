@@ -22,6 +22,15 @@
   transition: background-color 0.15s ease;
 }
 
+.square.hint-from {
+  box-shadow: inset 0 0 0 4px rgba(129, 182, 76, 0.6);
+}
+
+.square.hint-to {
+  box-shadow: inset 0 0 0 4px #81b64c;
+  background-image: radial-gradient(rgba(129, 182, 76, 0.45), transparent 70%);
+}
+
 .square:hover {
   filter: brightness(1.1);
 }

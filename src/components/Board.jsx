@@ -16,6 +16,7 @@ export default function Board({
   locked,
   lastMove,
   flipped,
+  hint,
 }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [selectedPiece, setSelectedPiece] = useState(null);
@@ -92,6 +93,9 @@ export default function Board({
           const square = toSquareNotation(rowIndex, colIndex);
           const isSelected = selectedSquare === square;
 
+          const isHintFrom = !viewOnly && hint?.from === square;
+          const isHintTo = !viewOnly && hint?.to === square;
+
           const movement =
             !viewOnly && lastMove && lastMove.to === square ? lastMove : null;
 
@@ -110,7 +114,7 @@ export default function Board({
           return (
             <div
               key={`${rowIndex}-${colIndex}`}
-              className={`square ${getSquareColor(rowIndex, colIndex)} ${isSelected ? "selected" : ""} ${moveStyle ? "has-moving" : ""} ${movableSquares.includes(square) ? "movable" : ""}`}
+              className={`square ${getSquareColor(rowIndex, colIndex)} ${isSelected ? "selected" : ""} ${moveStyle ? "has-moving" : ""} ${movableSquares.includes(square) ? "movable" : ""} ${isHintFrom ? "hint-from" : ""} ${isHintTo ? "hint-to" : ""}`}
               onClick={() => handleSquareClick(rowIndex, colIndex)}
             >
               {piece && (

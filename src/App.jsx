@@ -24,6 +24,11 @@ export default function App() {
 
   const [playerColor, setPlayerColor] = useState("w");
 
+  const [hint, setHint] = useState(null);
+  const [hinting, setHinting] = useState(false);
+  const [manualFlip, setManualFlip] = useState(false);
+  const moveId = useRef(0);
+
   //Load engine
   useEffect(() => {
     engineRef.current = createEngine();
@@ -67,11 +72,8 @@ export default function App() {
     setHistory(game.history());
     setFenHistory((prev) => [...prev, game.fen()]);
     setViewPlay(null);
-    setLastMove((prev) => ({
-      from: move.from,
-      to: move.to,
-      id: (prev?.id ?? 0) + 1,
-    }));
+    setHint(null);
+    setLastMove({ from: move.from, to: move.to, id: ++moveId.current });
   }
 
   function goToPlay(play) {
@@ -109,16 +111,63 @@ export default function App() {
     setLastMove(null);
     setThinking(false);
     setEndDismissed(false);
+    setHint(null);
+    setManualFlip(false);
     engineRef.current?.newGame();
 
     setStarted(false); // GameStart modal will be shown again
   }
 
+  function handleUndo() {
+    if (thinking || history.length === 0) return;
+
+    // desfaz até voltar a ser a vez do jogador (lance dele + resposta da IA)
+    do {
+      game.undo();
+    } while (game.turn() !== playerColor && game.history().length > 0);
+
+    const moves = game.history();
+    setHistory(moves);
+    setFenHistory((prev) => prev.slice(0, moves.length + 1));
+    setViewPlay(null);
+    setLastMove(null);
+    setHint(null);
+    setEndDismissed(false);
+  }
+
+  async function handleHint() {
+    setHinting(true);
+    try {
+      const uci = await engineRef.current.getBestMove(game.fen(), 20);
+      if (uci) setHint({ from: uci.slice(0, 2), to: uci.slice(2, 4) });
+    } catch (error) {
+      console.error("Falha ao obter a dica:", error);
+    }
+    setHinting(false);
+  }
+
+  const result = game.isGameOver() ? getResult(game) : null;
+
   const currentPlay = viewPlay ?? history.length;
   const viewOnly = viewPlay !== null;
   const fen = fenHistory[currentPlay];
 
-  const result = game.isGameOver() ? getResult(game) : null;
+  const isPlayerTurn = started && !result && game.turn() === playerColor;
+  const minUndoLength = playerColor === "b" ? 1 : 0; // IA abre a partida de brancas
+  const canUndo = started && !thinking && history.length > minUndoLength;
+  const canHint = isPlayerTurn && !thinking && !hinting && !viewOnly;
+
+  const status = !started
+    ? ""
+    : result
+      ? "Game over"
+      : hinting
+        ? "Calculating hint…"
+        : thinking
+          ? "AI is thinking…"
+          : viewOnly
+            ? "Reviewing game"
+            : "Your turn";
 
   return (
     <div className="app">
@@ -140,9 +189,21 @@ export default function App() {
         viewOnly={viewOnly}
         locked={thinking || game.turn() !== playerColor}
         lastMove={lastMove}
-        flipped={playerColor === "b"}
+        flipped={(playerColor === "b") !== manualFlip}
+        hint={hint}
       />
-      <History moves={history} currentPlay={currentPlay} onSelect={goToPlay} />
+      <History
+        moves={history}
+        currentPlay={currentPlay}
+        onSelect={goToPlay}
+        onUndo={handleUndo}
+        onHint={handleHint}
+        onFlip={() => setManualFlip((f) => !f)}
+        onRestart={handleNewGame}
+        canUndo={canUndo}
+        canHint={canHint}
+        status={status}
+      />
     </div>
   );
 }
