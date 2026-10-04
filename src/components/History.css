@@ -41,6 +41,7 @@
   display: flex;
   align-items: center;
   padding: 8px 16px;
+  margin: 8px 0;
   font-size: 0.95rem;
   text-align: center;
 }
@@ -56,6 +57,7 @@
   flex: 1;
   color: black;
   font-weight: 600;
+  cursor: pointer;
 }
 
 .move-highlight {
@@ -63,4 +65,10 @@
   color: #fff;
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+.active {
+    font-weight: 700;
+    background-color: #00000039;
+    border-radius: 4px;
 }

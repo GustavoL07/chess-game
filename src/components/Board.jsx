@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Chess } from "chess.js";
 import {
   getPieceImage,
   getSquareColor,
@@ -13,15 +14,31 @@ function squareToPosition(square) {
   };
 }
 
-export default function Board({ game, onMove }) {
+export default function Board({ game, fen, onMove, viewOnly }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [selectedPiece, setSelectedPiece] = useState(null);
-
   const [anim, setAnim] = useState({ id: 0, moves: [] });
 
-  const board = game.board();
+  useEffect(() => {
+    if (viewOnly) {
+      setSelectedSquare(null);
+      setSelectedPiece(null);
+      setAnim((prev) => ({ ...prev, moves: [] }));
+    }
+  }, [viewOnly]);
+
+  const displayGame = viewOnly ? new Chess(fen) : game;
+  const board = displayGame.board();
+
+  const movableSquares = selectedPiece
+    ? game.moves({ square: selectedSquare, verbose: true }).map((m) => m.to)
+    : [];
+  const inCheck = displayGame.inCheck();
+  const turn = displayGame.turn();
 
   function handleSquareClick(rowIndex, colIndex) {
+    if (viewOnly) return;
+
     const targetSquare = toSquareNotation(rowIndex, colIndex);
     const piece = game.get(targetSquare);
 
@@ -85,15 +102,7 @@ export default function Board({ game, onMove }) {
           }
 
           const isInCheck =
-            game.inCheck() &&
-            piece &&
-            piece.type === "k" &&
-            piece.color === game.turn();
-          const movableSquares = selectedPiece
-            ? game
-                .moves({ square: selectedSquare, verbose: true })
-                .map((m) => m.to)
-            : [];
+            inCheck && piece && piece.type === "k" && piece.color === turn;
 
           return (
             <div
