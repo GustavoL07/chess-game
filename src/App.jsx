@@ -13,7 +13,7 @@ export default function App() {
   const [fenHistory, setFenHistory] = useState([game.fen()]);
   const [viewPlay, setViewPlay] = useState(null);
 
-  const [level, setLevel] = useState("intermediario");
+  const [level, setLevel] = useState(10);
   const [aiDelay, setAiDelay] = useState(600);
   const [thinking, setThinking] = useState(false);
   const [lastMove, setLastMove] = useState(null);
@@ -129,6 +129,7 @@ export default function App() {
           result={result}
           playerColor={playerColor}
           onNewGame={handleNewGame}
+          onReview={() => setEndDismissed(true)}
         />
       )}
 

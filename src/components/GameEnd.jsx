@@ -9,7 +9,7 @@ const DRAW_REASONS = {
   fiftymove: "50-move rule",
 };
 
-export default function GameEnd({ result, playerColor, onNewGame }) {
+export default function GameEnd({ result, playerColor, onNewGame, onReview }) {
   const isDraw = result.type === "draw";
   const playerWon = !isDraw && result.winner === playerColor;
 
@@ -49,6 +49,9 @@ export default function GameEnd({ result, playerColor, onNewGame }) {
 
         <button type="button" className="start-button" onClick={onNewGame}>
           New Game
+        </button>
+        <button type="button" className="secondary-button" onClick={onReview}>
+          Review Game
         </button>
       </div>
     </div>
