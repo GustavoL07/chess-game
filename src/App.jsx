@@ -1,173 +1,67 @@
 import "./App.css";
-import { useState, useEffect, useRef } from "react";
-import { createEngine } from "./utils/engine";
-import { Chess } from "chess.js";
-import Board from "./components/Board";
-import History from "./components/History";
-import GameStart from "./components/GameStart";
-import GameEnd from "./components/GameEnd";
+import { useState } from "react";
+import { useChessGame } from "./hooks/useChessGame";
+import { useAI } from "./hooks/useAI";
+import { DEFAULT_LEVEL } from "./constants";
+import Board from "./components/Board/Board";
+import History from "./components/History/History";
+import GameStart from "./components/GameStart/GameStart";
+import GameEnd from "./components/GameEnd/GameEnd";
+
+function getStatus({ started, result, hinting, thinking, viewOnly }) {
+  if (!started) return "";
+  if (result) return "Game over";
+  if (hinting) return "Calculating hint…";
+  if (thinking) return "AI is thinking…";
+  if (viewOnly) return "Reviewing game";
+  return "Your turn";
+}
 
 export default function App() {
-  const [game] = useState(() => new Chess());
-  const [history, setHistory] = useState([]);
-  const [fenHistory, setFenHistory] = useState([game.fen()]);
-  const [viewPlay, setViewPlay] = useState(null);
-
-  const [level, setLevel] = useState(10);
-  const [aiDelay, setAiDelay] = useState(600);
-  const [thinking, setThinking] = useState(false);
-  const [lastMove, setLastMove] = useState(null);
-  const engineRef = useRef(null);
-
   const [started, setStarted] = useState(false);
   const [endDismissed, setEndDismissed] = useState(false);
-
   const [playerColor, setPlayerColor] = useState("w");
-
-  const [hint, setHint] = useState(null);
-  const [hinting, setHinting] = useState(false);
+  const [level, setLevel] = useState(DEFAULT_LEVEL);
   const [manualFlip, setManualFlip] = useState(false);
-  const moveId = useRef(0);
 
-  //Load engine
-  useEffect(() => {
-    engineRef.current = createEngine();
-    return () => engineRef.current?.terminate();
-  }, []);
+  const chess = useChessGame();
+  const { game, history, result, viewOnly } = chess;
 
-  useEffect(() => {
-    if (!started || game.turn() === playerColor || game.isGameOver()) return;
-
-    let cancelled = false;
-    setThinking(true);
-
-    const timeoutId = setTimeout(() => {
-      engineRef.current
-        .getBestMove(game.fen(), level)
-        .then((uci) => {
-          if (cancelled) return;
-          if (uci) {
-            const move = game.move({
-              from: uci.slice(0, 2),
-              to: uci.slice(2, 4),
-              promotion: uci[4],
-            });
-            handleMove(move);
-          }
-          setThinking(false);
-        })
-        .catch((error) => {
-          if (cancelled) return;
-          setThinking(false);
-        });
-    }, aiDelay);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timeoutId);
-    };
-  }, [history, level, aiDelay, started, playerColor]);
-
-  function handleMove(move) {
-    setHistory(game.history());
-    setFenHistory((prev) => [...prev, game.fen()]);
-    setViewPlay(null);
-    setHint(null);
-    setLastMove({ from: move.from, to: move.to, id: ++moveId.current });
-  }
-
-  function goToPlay(play) {
-    const clamped = Math.max(0, Math.min(play, history.length));
-    setViewPlay(clamped === history.length ? null : clamped);
-  }
+  const ai = useAI({
+    game,
+    started,
+    playerColor,
+    level,
+    history,
+    onMove: chess.applyMove,
+  });
 
   function handleStart({ color, level }) {
     const resolved =
       color === "random" ? (Math.random() < 0.5 ? "w" : "b") : color;
-
     setPlayerColor(resolved);
     setLevel(level);
     setStarted(true);
   }
 
-  function getResult(game) {
-    if (game.isCheckmate()) {
-      return { type: "win", winner: game.turn() === "w" ? "b" : "w" };
-    }
-    if (game.isStalemate()) return { type: "draw", reason: "stalemate" };
-    if (game.isInsufficientMaterial())
-      return { type: "draw", reason: "insufficient" };
-    if (game.isThreefoldRepetition())
-      return { type: "draw", reason: "threefold" };
-    if (game.isDraw()) return { type: "draw", reason: "fiftymove" };
-    return null;
-  }
-
   function handleNewGame() {
-    game.reset();
-    setHistory([]);
-    setFenHistory([game.fen()]);
-    setViewPlay(null);
-    setLastMove(null);
-    setThinking(false);
+    chess.reset();
+    ai.newGame();
     setEndDismissed(false);
-    setHint(null);
     setManualFlip(false);
-    engineRef.current?.newGame();
-
-    setStarted(false); // GameStart modal will be shown again
+    setStarted(false);
   }
 
   function handleUndo() {
-    if (thinking || history.length === 0) return;
-
-    // desfaz até voltar a ser a vez do jogador (lance dele + resposta da IA)
-    do {
-      game.undo();
-    } while (game.turn() !== playerColor && game.history().length > 0);
-
-    const moves = game.history();
-    setHistory(moves);
-    setFenHistory((prev) => prev.slice(0, moves.length + 1));
-    setViewPlay(null);
-    setLastMove(null);
-    setHint(null);
+    if (ai.thinking || history.length === 0) return;
+    chess.undo(playerColor);
     setEndDismissed(false);
   }
 
-  async function handleHint() {
-    setHinting(true);
-    try {
-      const uci = await engineRef.current.getBestMove(game.fen(), 20);
-      if (uci) setHint({ from: uci.slice(0, 2), to: uci.slice(2, 4) });
-    } catch (error) {
-      console.error("Falha ao obter a dica:", error);
-    }
-    setHinting(false);
-  }
-
-  const result = game.isGameOver() ? getResult(game) : null;
-
-  const currentPlay = viewPlay ?? history.length;
-  const viewOnly = viewPlay !== null;
-  const fen = fenHistory[currentPlay];
-
   const isPlayerTurn = started && !result && game.turn() === playerColor;
-  const minUndoLength = playerColor === "b" ? 1 : 0; // IA abre a partida de brancas
-  const canUndo = started && !thinking && history.length > minUndoLength;
-  const canHint = isPlayerTurn && !thinking && !hinting && !viewOnly;
-
-  const status = !started
-    ? ""
-    : result
-      ? "Game over"
-      : hinting
-        ? "Calculating hint…"
-        : thinking
-          ? "AI is thinking…"
-          : viewOnly
-            ? "Reviewing game"
-            : "Your turn";
+  const minUndoLength = playerColor === "b" ? 1 : 0;
+  const canUndo = started && !ai.thinking && history.length > minUndoLength;
+  const canHint = isPlayerTurn && !ai.thinking && !ai.hinting && !viewOnly;
 
   return (
     <div className="app">
@@ -184,25 +78,31 @@ export default function App() {
 
       <Board
         game={game}
-        fen={fen}
-        onMove={handleMove}
+        fen={chess.fen}
+        onMove={chess.applyMove}
         viewOnly={viewOnly}
-        locked={thinking || game.turn() !== playerColor}
-        lastMove={lastMove}
+        locked={ai.thinking || game.turn() !== playerColor}
+        lastMove={chess.lastMove}
         flipped={(playerColor === "b") !== manualFlip}
-        hint={hint}
+        hint={ai.hint}
       />
       <History
         moves={history}
-        currentPlay={currentPlay}
-        onSelect={goToPlay}
+        currentPlay={chess.currentPlay}
+        onSelect={chess.goToPlay}
         onUndo={handleUndo}
-        onHint={handleHint}
+        onHint={ai.requestHint}
         onFlip={() => setManualFlip((f) => !f)}
         onRestart={handleNewGame}
         canUndo={canUndo}
         canHint={canHint}
-        status={status}
+        status={getStatus({
+          started,
+          result,
+          hinting: ai.hinting,
+          thinking: ai.thinking,
+          viewOnly,
+        })}
       />
     </div>
   );

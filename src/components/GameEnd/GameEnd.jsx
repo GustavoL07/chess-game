@@ -1,6 +1,6 @@
 import "./GameEnd.css";
-import wk from "../assets/pieces/cburnett/wk.svg";
-import bk from "../assets/pieces/cburnett/bk.svg";
+import wk from "../../assets/pieces/cburnett/wk.svg";
+import bk from "../../assets/pieces/cburnett/bk.svg";
 
 const DRAW_REASONS = {
   stalemate: "Stalemate",

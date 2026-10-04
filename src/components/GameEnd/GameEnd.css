@@ -1,0 +1,33 @@
+/* .modal, .start-button e .secondary-button ficam em styles/modal.css */
+
+.end-kings {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.end-king {
+  width: 96px;
+  height: 96px;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--bg-raised);
+}
+
+/* Vitória: destaque no rei vencedor */
+.end-king.winner {
+  width: 128px;
+  height: 128px;
+  background: var(--accent-bg);
+  box-shadow:
+    0 0 0 3px var(--accent),
+    0 0 24px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.end-subtitle {
+  margin: 0 0 24px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}

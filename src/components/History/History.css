@@ -5,8 +5,8 @@
   flex-direction: column;
   overflow: hidden;
   border-radius: 12px;
-  background: #2b2a27;
-  color: #f0eee9;
+  background: var(--bg);
+  color: var(--text);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -18,8 +18,8 @@
   flex-direction: column;
   gap: 2px;
   padding: 14px 16px;
-  background: #211f1c;
-  border-bottom: 1px solid #3a3935;
+  background: var(--bg-dark);
+  border-bottom: 1px solid var(--border);
   text-align: center;
 }
 
@@ -30,7 +30,7 @@
 
 .history-status {
   font-size: 0.75rem;
-  color: #81b64c;
+  color: var(--accent);
 }
 
 /* Lista */
@@ -45,7 +45,7 @@
 }
 
 .history-list::-webkit-scrollbar-thumb {
-  background-color: #45443f;
+  background-color: var(--bg-hover);
   border-radius: 3px;
 }
 
@@ -53,7 +53,7 @@
   margin: 40px 0;
   text-align: center;
   font-size: 0.9rem;
-  color: #77746c;
+  color: var(--text-faint);
 }
 
 .history-row {
@@ -71,7 +71,7 @@
   width: 30px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #77746c;
+  color: var(--text-faint);
 }
 
 .move-cell {
@@ -80,7 +80,7 @@
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #f0eee9;
+  color: var(--text);
   font: inherit;
   font-size: 0.95rem;
   font-weight: 600;
@@ -90,11 +90,11 @@
 }
 
 .move-cell:hover:not(.empty) {
-  background: #3a3935;
+  background: var(--bg-raised);
 }
 
 .move-cell.active {
-  background: #81b64c;
+  background: var(--accent);
   color: #fff;
 }
 
@@ -108,8 +108,8 @@
   flex-direction: column;
   gap: 10px;
   padding: 10px 12px 12px;
-  background: #211f1c;
-  border-top: 1px solid #3a3935;
+  background: var(--bg-dark);
+  border-top: 1px solid var(--border);
 }
 
 .history-nav {
@@ -122,15 +122,15 @@
   padding: 8px 0;
   border: none;
   border-radius: 6px;
-  background: #3a3935;
-  color: #f0eee9;
+  background: var(--bg-raised);
+  color: var(--text);
   font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.12s;
 }
 
 .history-nav button:hover:not(:disabled) {
-  background: #45443f;
+  background: var(--bg-hover);
 }
 
 .history-actions {
@@ -147,8 +147,8 @@
   padding: 8px 0;
   border: 2px solid transparent;
   border-radius: 8px;
-  background: #3a3935;
-  color: #f0eee9;
+  background: var(--bg-raised);
+  color: var(--text);
   font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
@@ -163,12 +163,12 @@
 }
 
 .action-btn:hover:not(:disabled) {
-  background: #45443f;
+  background: var(--bg-hover);
 }
 
 .action-btn.danger {
-  border-color: #c64b4b;
-  background: #4a2f2f;
+  border-color: var(--danger);
+  background: var(--danger-bg);
 }
 
 .history-nav button:disabled,
@@ -180,6 +180,6 @@
 .history-nav button:focus-visible,
 .action-btn:focus-visible,
 .move-cell:focus-visible {
-  outline: 2px solid #81b64c;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

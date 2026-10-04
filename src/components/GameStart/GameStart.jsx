@@ -1,8 +1,8 @@
 import { useState } from "react";
 import "./GameStart.css";
-import wk from "../assets/pieces/cburnett/wk.svg";
-import bk from "../assets/pieces/cburnett/bk.svg";
-import dice from "../assets/images/dice.png";
+import wk from "../../assets/pieces/cburnett/wk.svg";
+import bk from "../../assets/pieces/cburnett/bk.svg";
+import dice from "../../assets/images/dice.png";
 
 const COLORS = [
   { id: "w", label: "White", icon: wk },
