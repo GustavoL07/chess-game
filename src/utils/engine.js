@@ -1,9 +1,12 @@
-export const LEVELS = {
-  iniciante: { skill: 0, depth: 1, movetime: 150 },
-  intermediario: { skill: 8, depth: 8, movetime: 500 },
-  avancado: { skill: 14, depth: 12, movetime: 1000 },
-  mestre: { skill: 20, depth: 16, movetime: 2000 },
-};
+// skill 1 → depth 1 | skill 20 → depth 18
+export function skillToDepth(skill) {
+  return Math.round(1 + ((skill - 1) * 17) / 19);
+}
+
+// skill 1 → 200ms | skill 20 → 2100ms
+export function skillToMovetime(skill) {
+  return 100 + skill * 100;
+}
 
 export function createEngine(path = "/stockfish/stockfish-19-lite-single.js") {
   const worker = new Worker(path);
@@ -22,8 +25,10 @@ export function createEngine(path = "/stockfish/stockfish-19-lite-single.js") {
   send("uci");
   send("isready");
 
-  function getBestMove(fen, levelName = "intermediario") {
-    const { skill, depth, movetime } = LEVELS[levelName];
+  function getBestMove(fen, skill = 10) {
+    const depth = skillToDepth(skill);
+    const movetime = skillToMovetime(skill);
+
     return new Promise((resolve) => {
       pending = resolve;
       send(`setoption name Skill Level value ${skill}`);
