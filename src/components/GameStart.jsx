@@ -10,16 +10,16 @@ const COLORS = [
   { id: "b", label: "Black", icon: bk },
 ];
 
-const LEVELS = [
-  { id: "iniciante", label: "Iniciante", desc: "Comete muitos erros" },
-  { id: "intermediario", label: "Intermediário", desc: "Um bom desafio" },
-  { id: "avancado", label: "Avançado", desc: "Joga com precisão" },
-  { id: "mestre", label: "Mestre", desc: "Quase imbatível" },
-];
+function levelLabel(level) {
+  if (level <= 5) return "Beginner";
+  if (level <= 10) return "Intermediate";
+  if (level <= 15) return "Advanced";
+  return "Master";
+}
 
 export default function GameStart({ onStart }) {
   const [color, setColor] = useState("w");
-  const [level, setLevel] = useState("intermediario");
+  const [level, setLevel] = useState(10);
 
   function handleStart() {
     onStart?.({ color, level });
@@ -55,19 +55,27 @@ export default function GameStart({ onStart }) {
         </section>
 
         <section className="modal-section">
-          <h3 className="modal-subtitle">IA Level</h3>
-          <div className="option-list">
-            {LEVELS.map((l) => (
-              <button
-                key={l.id}
-                type="button"
-                className={`option-item ${level === l.id ? "active" : ""}`}
-                onClick={() => setLevel(l.id)}
-              >
-                <span className="option-label">{l.label}</span>
-                <span className="option-desc">{l.desc}</span>
-              </button>
-            ))}
+          <h3 className="modal-subtitle">AI Level</h3>
+
+          <div className="level-header">
+            <span className="level-value">{level}</span>
+            <span className="option-desc">{levelLabel(level)}</span>
+          </div>
+
+          <input
+            className="level-slider"
+            type="range"
+            min="1"
+            max="20"
+            step="1"
+            value={level}
+            onChange={(e) => setLevel(Number(e.target.value))}
+            aria-label="AI level"
+          />
+
+          <div className="level-scale">
+            <span>1</span>
+            <span>20</span>
           </div>
         </section>
 
