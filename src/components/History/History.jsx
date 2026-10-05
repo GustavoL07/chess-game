@@ -12,6 +12,7 @@ export default function History({
   canUndo = false,
   canHint = false,
   status = "",
+  onSettings,
 }) {
   const listRef = useRef(null);
   const [confirming, setConfirming] = useState(false);
@@ -58,6 +59,14 @@ export default function History({
       <div className="history-header">
         <span className="history-title">Moves</span>
         {status && <span className="history-status">{status}</span>}
+        <button
+          type="button"
+          className="history-settings"
+          onClick={onSettings}
+          aria-label="Settings"
+        >
+          ⚙
+        </button>
       </div>
 
       <div className="history-list" ref={listRef}>

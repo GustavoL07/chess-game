@@ -19,6 +19,7 @@ export default function Board({
   lastMove,
   flipped,
   hint,
+  pieceSet
 }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
 
@@ -111,6 +112,7 @@ export default function Board({
               }
               moveKey={lastMove?.id}
               onClick={() => handleSquareClick(rowIndex, colIndex)}
+              pieceSet={pieceSet}
             />
           );
         }),

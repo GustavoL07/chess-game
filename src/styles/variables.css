@@ -1,18 +1,18 @@
 :root {
-  /* superfícies */
+  --page-bg: #1f1e1b;
   --bg: #2b2a27;
   --bg-dark: #211f1c;
   --bg-raised: #3a3935;
   --bg-hover: #45443f;
   --border: #3a3935;
-
+  
   --text: #f0eee9;
   --text-muted: #a8a59d;
   --text-faint: #77746c;
 
-  --accent: #4c73b6;
-  --accent-hover: #5e7cc8;
-  --accent-bg: #343b4a;
+  --accent: #81b64c;
+  --accent-hover: color-mix(in srgb, var(--accent) 80%, white);
+  --accent-bg: color-mix(in srgb, var(--accent) 25%, var(--bg));
   --danger: #c64b4b;
   --danger-bg: #4a2f2f;
 
@@ -22,4 +22,8 @@
   --board-check: rgba(255, 0, 0, 0.8);
 
   --radius: 10px;
+}
+
+body {
+  background: var(--page-bg);
 }

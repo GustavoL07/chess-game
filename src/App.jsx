@@ -7,6 +7,8 @@ import Board from "./components/Board/Board";
 import History from "./components/History/History";
 import GameStart from "./components/GameStart/GameStart";
 import GameEnd from "./components/GameEnd/GameEnd";
+import Settings from "./components/Settings/Settings";
+import { useSettings } from "./hooks/useSettings";
 
 function getStatus({ started, result, hinting, thinking, viewOnly }) {
   if (!started) return "";
@@ -23,7 +25,9 @@ export default function App() {
   const [playerColor, setPlayerColor] = useState("w");
   const [level, setLevel] = useState(DEFAULT_LEVEL);
   const [manualFlip, setManualFlip] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
+  const { settings, update, applyTheme, reset } = useSettings();
   const chess = useChessGame();
   const { game, history, result, viewOnly } = chess;
 
@@ -65,7 +69,19 @@ export default function App() {
 
   return (
     <div className="app">
-      {!started && <GameStart onStart={handleStart} />}
+      {!started && (
+        <GameStart onStart={handleStart} pieceSet={settings.pieceSet} />
+      )}
+
+      {showSettings && (
+        <Settings
+          settings={settings}
+          onChange={update}
+          onApplyTheme={applyTheme}
+          onReset={reset}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
 
       {started && result && !endDismissed && (
         <GameEnd
@@ -73,6 +89,7 @@ export default function App() {
           playerColor={playerColor}
           onNewGame={handleNewGame}
           onReview={() => setEndDismissed(true)}
+          pieceSet={settings.pieceSet}
         />
       )}
 
@@ -85,7 +102,9 @@ export default function App() {
         lastMove={chess.lastMove}
         flipped={(playerColor === "b") !== manualFlip}
         hint={ai.hint}
+        pieceSet={settings.pieceSet}
       />
+
       <History
         moves={history}
         currentPlay={chess.currentPlay}
@@ -103,6 +122,7 @@ export default function App() {
           thinking: ai.thinking,
           viewOnly,
         })}
+        onSettings={() => setShowSettings(true)}
       />
     </div>
   );

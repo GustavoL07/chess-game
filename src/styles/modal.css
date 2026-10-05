@@ -1,4 +1,17 @@
 /* Estilos compartilhados por GameStart e GameEnd */
+.modal-section {
+  margin-bottom: 22px;
+}
+
+.modal-subtitle {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;

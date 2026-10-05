@@ -1,18 +1,18 @@
 import { getPieceImage } from "../../utils/pieces";
 import "./Square.css";
 
-// Só desenha uma casa; toda a lógica fica no Board.
 export default function Square({
   piece,
-  colorClass, // "light" | "dark"
+  colorClass,
   isSelected,
   isMovable,
   isHintFrom,
   isHintTo,
   isInCheck,
-  moveStyle, // { "--dx", "--dy" } quando a peça acabou de chegar aqui
-  moveKey, // id do lance, para reiniciar a animação
+  moveStyle,
+  moveKey,
   onClick,
+  pieceSet
 }) {
   const classes = [
     "square",
@@ -39,7 +39,7 @@ export default function Square({
       {piece && (
         <img
           key={moveStyle ? `moved-${moveKey}` : "piece"}
-          src={getPieceImage(piece)}
+          src={getPieceImage(piece, pieceSet)}
           style={moveStyle}
           className={pieceClasses}
           alt={`${piece.color} ${piece.type}`}

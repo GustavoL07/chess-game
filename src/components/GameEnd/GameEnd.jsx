@@ -9,7 +9,7 @@ const DRAW_REASONS = {
   fiftymove: "50-move rule",
 };
 
-export default function GameEnd({ result, playerColor, onNewGame, onReview }) {
+export default function GameEnd({ result, playerColor, onNewGame, onReview, pieceSet }) {
   const isDraw = result.type === "draw";
   const playerWon = !isDraw && result.winner === playerColor;
 
