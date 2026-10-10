@@ -9,6 +9,7 @@ import GameStart from "./components/GameStart/GameStart";
 import GameEnd from "./components/GameEnd/GameEnd";
 import Settings from "./components/Settings/Settings";
 import { useSettings } from "./hooks/useSettings";
+import gear from "./assets/images/gear.svg";
 
 function getStatus({ started, result, hinting, thinking, viewOnly }) {
   if (!started) return "";
@@ -69,6 +70,15 @@ export default function App() {
 
   return (
     <div className="app">
+      <button
+        type="button"
+        className="settings-fab"
+        onClick={() => setShowSettings(true)}
+        aria-label="Settings"
+      >
+        <img className="gear-icon" src={gear} alt="" />
+      </button>
+
       {!started && (
         <GameStart onStart={handleStart} pieceSet={settings.pieceSet} />
       )}
@@ -122,7 +132,6 @@ export default function App() {
           thinking: ai.thinking,
           viewOnly,
         })}
-        onSettings={() => setShowSettings(true)}
       />
     </div>
   );

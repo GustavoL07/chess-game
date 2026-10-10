@@ -1,14 +1,7 @@
 import { useState } from "react";
+import { getPieceUrl } from "../../utils/pieceSets";
 import "./GameStart.css";
-import wk from "../../assets/pieces/cburnett/wk.svg";
-import bk from "../../assets/pieces/cburnett/bk.svg";
 import dice from "../../assets/images/dice.png";
-
-const COLORS = [
-  { id: "w", label: "White", icon: wk },
-  { id: "random", label: "Random", icon: dice },
-  { id: "b", label: "Black", icon: bk },
-];
 
 function levelLabel(level) {
   if (level <= 5) return "Beginner";
@@ -17,9 +10,15 @@ function levelLabel(level) {
   return "Master";
 }
 
-export default function GameStart({ onStart }) {
+export default function GameStart({ onStart, pieceSet }) {
   const [color, setColor] = useState("w");
   const [level, setLevel] = useState(10);
+
+  const colors = [
+    { id: "w", label: "White", icon: getPieceUrl(pieceSet, "w", "k") },
+    { id: "random", label: "Random", icon: dice },
+    { id: "b", label: "Black", icon: getPieceUrl(pieceSet, "b", "k") },
+  ];
 
   function handleStart() {
     onStart?.({ color, level });
@@ -40,7 +39,7 @@ export default function GameStart({ onStart }) {
         <section className="modal-section">
           <h3 className="modal-subtitle">Play as</h3>
           <div className="option-row">
-            {COLORS.map((c) => (
+            {colors.map((c) => (
               <button
                 key={c.id}
                 type="button"

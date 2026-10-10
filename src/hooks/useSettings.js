@@ -17,7 +17,6 @@ function load() {
   }
 }
 
-// Preferências visuais: aplica as cores como variáveis CSS e salva no navegador.
 export function useSettings() {
   const [settings, setSettings] = useState(load);
 

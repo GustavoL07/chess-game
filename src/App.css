@@ -7,3 +7,49 @@
   width: 100%;
   height: 100vh;
 }
+
+.settings-fab {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 50;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition:
+    background 0.15s,
+    color 0.15s,
+    transform 0.15s;
+}
+
+.settings-fab:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+  transform: rotate(45deg);
+}
+
+.settings-fab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.gear-icon {
+  transform: scale(1.75);
+  color: white;
+}
+
+.settings-button-container {
+  position: fixed;
+  top: 50px;
+  left: 16px;
+}

@@ -3,8 +3,20 @@ import { PIECE_SETS, getPieceUrl, formatSetName } from "../../utils/pieceSets";
 import { BOARD_THEMES } from "../../constants";
 import "./Settings.css";
 
-// 2 linhas x 4 colunas, só para visualizar peças e cores juntas
-const PREVIEW = ["br", "bq", "bk", "bn", "wp", "wr", "wk", "wn"];
+const PREVIEW = [
+  "bp",
+  "bb",
+  "bn",
+  "br",
+  "bq",
+  "bk",
+  "wp",
+  "wb",
+  "wn",
+  "wr",
+  "wq",
+  "wk",
+];
 
 export default function Settings({
   settings,
@@ -32,96 +44,110 @@ export default function Settings({
         aria-modal="true"
         aria-labelledby="st-title"
       >
-        <h2 id="st-title" className="modal-title">
-          Settings
-        </h2>
+        <header className="settings-head">
+          <h2 id="st-title" className="modal-title">
+            Settings
+          </h2>
 
-        <div className="settings-preview" aria-hidden="true">
-          {PREVIEW.map((key, i) => {
-            const isDark = ((i % 4) + Math.floor(i / 4)) % 2 === 1;
-            return (
-              <div key={key} className={isDark ? "dark" : "light"}>
-                <img src={getPieceUrl(settings.pieceSet, key[0], key[1])} alt="" />
+          <div className="settings-preview" aria-hidden="true">
+            {PREVIEW.map((key, i) => (
+              <div key={key} className={i % 2 === 1 ? "dark" : "light"}>
+                <img
+                  src={getPieceUrl(settings.pieceSet, key[0], key[1])}
+                  alt=""
+                />
               </div>
-            );
-          })}
-        </div>
-
-        <section className="modal-section">
-          <h3 className="modal-subtitle">Pieces</h3>
-          <div className="piece-grid">
-            {PIECE_SETS.map((name) => (
-              <button
-                key={name}
-                type="button"
-                className={`piece-option ${settings.pieceSet === name ? "active" : ""}`}
-                onClick={() => onChange("pieceSet", name)}
-              >
-                <span className="piece-option-images">
-                  <img src={getPieceUrl(name, "w", "n")} alt="" />
-                  <img src={getPieceUrl(name, "b", "n")} alt="" />
-                </span>
-                <span className="piece-option-name">{formatSetName(name)}</span>
-              </button>
             ))}
           </div>
-        </section>
+        </header>
 
-        <section className="modal-section">
-          <h3 className="modal-subtitle">Board</h3>
-          <div className="theme-grid">
-            {BOARD_THEMES.map((theme) => {
-              const active =
-                settings.boardLight === theme.light &&
-                settings.boardDark === theme.dark;
-              return (
-                <button
-                  key={theme.id}
-                  type="button"
-                  className={`theme-option ${active ? "active" : ""}`}
-                  onClick={() => onApplyTheme(theme)}
-                  title={theme.label}
-                  aria-label={`${theme.label} board`}
-                >
-                  <span style={{ background: theme.light }} />
-                  <span style={{ background: theme.dark }} />
-                </button>
-              );
-            })}
+        <div className="settings-body">
+          <div className="settings-col">
+            <section className="modal-section">
+              <h3 className="modal-subtitle">Pieces</h3>
+              <div className="piece-grid">
+                {PIECE_SETS.map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    className={`piece-option ${settings.pieceSet === name ? "active" : ""}`}
+                    onClick={() => onChange("pieceSet", name)}
+                  >
+                    <span className="piece-option-images">
+                      <img src={getPieceUrl(name, "w", "n")} alt="" />
+                      <img src={getPieceUrl(name, "b", "n")} alt="" />
+                    </span>
+                    <span className="piece-option-name">
+                      {formatSetName(name)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
           </div>
 
-          <ColorField
-            label="Light squares"
-            value={settings.boardLight}
-            onChange={(v) => onChange("boardLight", v)}
-          />
-          <ColorField
-            label="Dark squares"
-            value={settings.boardDark}
-            onChange={(v) => onChange("boardDark", v)}
-          />
-        </section>
+          <div className="settings-col">
+            <section className="modal-section">
+              <h3 className="modal-subtitle">Board</h3>
+              <div className="theme-grid">
+                {BOARD_THEMES.map((theme) => {
+                  const active =
+                    settings.boardLight === theme.light &&
+                    settings.boardDark === theme.dark;
+                  return (
+                    <button
+                      key={theme.id}
+                      type="button"
+                      className={`theme-option ${active ? "active" : ""}`}
+                      onClick={() => onApplyTheme(theme)}
+                      aria-label={`${theme.label} board`}
+                    >
+                      <span
+                        className="theme-swatch"
+                        style={{ "--l": theme.light, "--d": theme.dark }}
+                      />
+                      <span className="theme-name">{theme.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-        <section className="modal-section">
-          <h3 className="modal-subtitle">Interface</h3>
-          <ColorField
-            label="Page background"
-            value={settings.pageBg}
-            onChange={(v) => onChange("pageBg", v)}
-          />
-          <ColorField
-            label="Accent color"
-            value={settings.accent}
-            onChange={(v) => onChange("accent", v)}
-          />
-        </section>
+              <ColorField
+                label="Light squares"
+                value={settings.boardLight}
+                onChange={(v) => onChange("boardLight", v)}
+              />
+              <ColorField
+                label="Dark squares"
+                value={settings.boardDark}
+                onChange={(v) => onChange("boardDark", v)}
+              />
+            </section>
 
-        <button type="button" className="start-button" onClick={onClose}>
-          Done
-        </button>
-        <button type="button" className="secondary-button" onClick={onReset}>
-          Reset to defaults
-        </button>
+            <section className="modal-section">
+              <h3 className="modal-subtitle">Interface</h3>
+              <ColorField
+                label="Page background"
+                value={settings.pageBg}
+                onChange={(v) => onChange("pageBg", v)}
+              />
+              <ColorField
+                label="Accent color"
+                value={settings.accent}
+                onChange={(v) => onChange("accent", v)}
+              />
+            </section>
+          </div>
+        </div>
+
+        <footer className="settings-footer">
+          <button type="button" className="secondary-button" onClick={onReset}>
+            Reset to defaults
+          </button>
+          <button type="button" className="start-button" onClick={onClose}>
+            Done
+          </button>
+        </footer>
       </div>
     </div>
   );

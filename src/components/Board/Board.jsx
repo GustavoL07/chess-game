@@ -72,9 +72,7 @@ export default function Board({
       setSelectedSquare(null);
       onMove(move);
       return;
-    } catch {
-      // lance inválido: tenta trocar a seleção
-    }
+    } catch {}
 
     selectIfOwn(targetSquare, piece);
   }

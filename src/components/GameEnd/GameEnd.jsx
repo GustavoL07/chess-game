@@ -1,6 +1,5 @@
 import "./GameEnd.css";
-import wk from "../../assets/pieces/cburnett/wk.svg";
-import bk from "../../assets/pieces/cburnett/bk.svg";
+import { getPieceUrl } from "../../utils/pieceSets";
 
 const DRAW_REASONS = {
   stalemate: "Stalemate",
@@ -9,9 +8,18 @@ const DRAW_REASONS = {
   fiftymove: "50-move rule",
 };
 
-export default function GameEnd({ result, playerColor, onNewGame, onReview, pieceSet }) {
+export default function GameEnd({
+  result,
+  playerColor,
+  onNewGame,
+  onReview,
+  pieceSet,
+}) {
   const isDraw = result.type === "draw";
   const playerWon = !isDraw && result.winner === playerColor;
+
+  const wk = getPieceUrl(pieceSet, "w", "k");
+  const bk = getPieceUrl(pieceSet, "b", "k");
 
   const title = isDraw ? "Draw" : playerWon ? "You won!" : "You lost";
   const subtitle = isDraw

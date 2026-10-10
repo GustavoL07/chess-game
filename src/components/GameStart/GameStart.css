@@ -21,8 +21,9 @@
 }
 
 .option-icon {
-  font-size: 2rem;
-  line-height: 1;
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
 }
 
 .option-label {
