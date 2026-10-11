@@ -6,13 +6,14 @@ export default function Square({
   colorClass,
   isSelected,
   isMovable,
+  isCapturable,
   isHintFrom,
   isHintTo,
   isInCheck,
   moveStyle,
   moveKey,
   onClick,
-  pieceSet
+  pieceSet,
 }) {
   const classes = [
     "square",
@@ -20,6 +21,7 @@ export default function Square({
     isSelected && "selected",
     moveStyle && "has-moving",
     isMovable && "movable",
+    isCapturable && "capturable",
     isHintFrom && "hint-from",
     isHintTo && "hint-to",
   ]
@@ -28,6 +30,7 @@ export default function Square({
 
   const pieceClasses = [
     isSelected && "selected-piece",
+    isHintFrom && "hint-piece",
     moveStyle && "moving",
     isInCheck && "in-check",
   ]

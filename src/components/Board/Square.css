@@ -1,3 +1,9 @@
+:root[data-hide-move-hints] .movable::after,
+:root[data-hide-captures] .capturable::after,
+:root[data-hide-selected] .square.selected::after {
+  display: none;
+}
+
 .square {
   display: flex;
   justify-content: center;
@@ -19,25 +25,34 @@
   background-color: var(--board-dark);
 }
 
-/* Dica */
-.square.hint-from {
-  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--accent) 60%, transparent);
+.square.hint-from::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 3px var(--select-color);
+  pointer-events: none;
 }
 
-.square.hint-to {
-  box-shadow: inset 0 0 0 4px var(--accent);
-  background-image: radial-gradient(
-    color-mix(in srgb, var(--accent) 45%, transparent),
-    transparent 70%
-  );
+.square.hint-to::before {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  border: 4px solid var(--hint-color);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--hint-color) 25%, transparent);
+  pointer-events: none;
 }
 
-/* Seleção e lances possíveis */
+:root[data-hide-hint] .hint-from::after,
+:root[data-hide-hint] .hint-to::before {
+  display: none;
+}
+
 .square.selected::after {
   content: "";
   position: absolute;
   inset: 0;
-  box-shadow: inset 0 0 0 3px var(--board-select);
+  box-shadow: inset 0 0 0 3px var(--select-color);
   pointer-events: none;
 }
 
@@ -50,7 +65,17 @@
   left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background-color: rgba(0, 255, 0, 0.35);
+  background-color: color-mix(in srgb, var(--move-hint) 40%, transparent);
+  pointer-events: none;
+}
+
+.capturable::after {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  border: 4px solid var(--capture-color);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--capture-color) 25%, transparent);
   pointer-events: none;
 }
 
@@ -64,16 +89,10 @@
     filter 0.2s ease;
 }
 
-.selected-piece {
-  transform: translateY(-3px);
-  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.4));
-}
-
 .in-check {
   filter: drop-shadow(0 0 10px var(--board-check));
 }
 
-/* Animação do lance */
 .square.has-moving {
   z-index: 2;
 }
@@ -92,4 +111,20 @@
   to {
     transform: translate(0, 0);
   }
+}
+
+.square img.selected-piece,
+.square img.hint-piece {
+  transform: translateY(-3px);
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.4));
+}
+
+:root[data-hide-selected] .square img.selected-piece,
+:root[data-hide-hint] .square img.hint-piece {
+  transform: none;
+  filter: none;
+}
+
+.square img.in-check {
+  filter: drop-shadow(0 0 10px var(--board-check));
 }

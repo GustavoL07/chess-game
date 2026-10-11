@@ -19,11 +19,10 @@ export default function Board({
   lastMove,
   flipped,
   hint,
-  pieceSet
+  pieceSet,
 }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
 
-  // ao revisar o histórico, limpa a seleção
   useEffect(() => {
     if (viewOnly) setSelectedSquare(null);
   }, [viewOnly]);
@@ -33,10 +32,15 @@ export default function Board({
   const inCheck = displayGame.inCheck();
   const turn = displayGame.turn();
 
+  const targets = selectedSquare
+    ? game.moves({ square: selectedSquare, verbose: true })
+    : [];
+
   const movableSquares = new Set(
-    selectedSquare
-      ? game.moves({ square: selectedSquare, verbose: true }).map((m) => m.to)
-      : [],
+    targets.filter((m) => !m.flags.includes("c")).map((m) => m.to),
+  );
+  const capturableSquares = new Set(
+    targets.filter((m) => m.flags.includes("c")).map((m) => m.to),
   );
 
   const indices = flipped ? [...INDICES].reverse() : INDICES;
@@ -100,6 +104,7 @@ export default function Board({
               colorClass={getSquareColor(rowIndex, colIndex)}
               isSelected={selectedSquare === square}
               isMovable={movableSquares.has(square)}
+              isCapturable={capturableSquares.has(square)}
               isHintFrom={!viewOnly && hint?.from === square}
               isHintTo={!viewOnly && hint?.to === square}
               isInCheck={

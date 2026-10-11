@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PIECE_SETS, getPieceUrl, formatSetName } from "../../utils/pieceSets";
 import { BOARD_THEMES } from "../../constants";
 import "./Settings.css";
@@ -18,6 +18,13 @@ const PREVIEW = [
   "wk",
 ];
 
+const TABS = [
+  { id: "pieces", label: "Pieces" },
+  { id: "board", label: "Board" },
+  { id: "highlights", label: "Highlights" },
+  { id: "interface", label: "Interface" },
+];
+
 export default function Settings({
   settings,
   onChange,
@@ -25,6 +32,9 @@ export default function Settings({
   onReset,
   onClose,
 }) {
+  const [tab, setTab] = useState("pieces");
+  const bodyRef = useRef(null);
+
   useEffect(() => {
     function onKey(e) {
       if (e.key === "Escape") onClose();
@@ -32,6 +42,11 @@ export default function Settings({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  // ao trocar de aba, volta ao topo
+  useEffect(() => {
+    bodyRef.current?.scrollTo({ top: 0 });
+  }, [tab]);
 
   return (
     <div
@@ -59,12 +74,34 @@ export default function Settings({
               </div>
             ))}
           </div>
+
+          <div className="settings-tabs" role="tablist">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                id={`tab-${t.id}`}
+                type="button"
+                role="tab"
+                aria-selected={tab === t.id}
+                aria-controls="settings-panel"
+                className={`settings-tab ${tab === t.id ? "active" : ""}`}
+                onClick={() => setTab(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </header>
 
-        <div className="settings-body">
-          <div className="settings-col">
-            <section className="modal-section">
-              <h3 className="modal-subtitle">Pieces</h3>
+        <div
+          className="settings-body"
+          ref={bodyRef}
+          id="settings-panel"
+          role="tabpanel"
+          aria-labelledby={`tab-${tab}`}
+        >
+          <div className="settings-panel">
+            {tab === "pieces" && (
               <div className="piece-grid">
                 {PIECE_SETS.map((name) => (
                   <button
@@ -83,60 +120,101 @@ export default function Settings({
                   </button>
                 ))}
               </div>
-            </section>
-          </div>
+            )}
 
-          <div className="settings-col">
-            <section className="modal-section">
-              <h3 className="modal-subtitle">Board</h3>
-              <div className="theme-grid">
-                {BOARD_THEMES.map((theme) => {
-                  const active =
-                    settings.boardLight === theme.light &&
-                    settings.boardDark === theme.dark;
-                  return (
-                    <button
-                      key={theme.id}
-                      type="button"
-                      className={`theme-option ${active ? "active" : ""}`}
-                      onClick={() => onApplyTheme(theme)}
-                      aria-label={`${theme.label} board`}
-                    >
-                      <span
-                        className="theme-swatch"
-                        style={{ "--l": theme.light, "--d": theme.dark }}
-                      />
-                      <span className="theme-name">{theme.label}</span>
-                    </button>
-                  );
-                })}
+            {tab === "board" && (
+              <>
+                <h3 className="modal-subtitle">Themes</h3>
+                <div className="theme-grid">
+                  {BOARD_THEMES.map((theme) => {
+                    const active =
+                      settings.boardLight === theme.light &&
+                      settings.boardDark === theme.dark;
+                    return (
+                      <button
+                        key={theme.id}
+                        type="button"
+                        className={`theme-option ${active ? "active" : ""}`}
+                        onClick={() => onApplyTheme(theme)}
+                        aria-label={`${theme.label} board`}
+                      >
+                        <span
+                          className="theme-swatch"
+                          style={{ "--l": theme.light, "--d": theme.dark }}
+                        />
+                        <span className="theme-name">{theme.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <h3 className="modal-subtitle">Custom colors</h3>
+                <div className="setting-group">
+                  <ColorRow
+                    label="Light squares"
+                    value={settings.boardLight}
+                    onChange={(v) => onChange("boardLight", v)}
+                  />
+                  <ColorRow
+                    label="Dark squares"
+                    value={settings.boardDark}
+                    onChange={(v) => onChange("boardDark", v)}
+                  />
+                </div>
+              </>
+            )}
+
+            {tab === "highlights" && (
+              <div className="setting-group">
+                <HighlightRow
+                  label="Possible moves"
+                  description="Dots on the squares a piece can reach"
+                  enabled={settings.showMoveHints}
+                  color={settings.moveHintColor}
+                  onToggle={(v) => onChange("showMoveHints", v)}
+                  onColor={(v) => onChange("moveHintColor", v)}
+                />
+                <HighlightRow
+                  label="Selected piece"
+                  description="Outline and lift on the chosen piece"
+                  enabled={settings.showSelected}
+                  color={settings.selectedColor}
+                  onToggle={(v) => onChange("showSelected", v)}
+                  onColor={(v) => onChange("selectedColor", v)}
+                />
+                <HighlightRow
+                  label="Capturable pieces"
+                  description="Ring around pieces you can take"
+                  enabled={settings.showCaptures}
+                  color={settings.captureColor}
+                  onToggle={(v) => onChange("showCaptures", v)}
+                  onColor={(v) => onChange("captureColor", v)}
+                />
+                <HighlightRow
+                  label="AI hint"
+                  description="Piece to move and its target square"
+                  enabled={settings.showHint}
+                  color={settings.hintColor}
+                  onToggle={(v) => onChange("showHint", v)}
+                  onColor={(v) => onChange("hintColor", v)}
+                />
               </div>
+            )}
 
-              <ColorField
-                label="Light squares"
-                value={settings.boardLight}
-                onChange={(v) => onChange("boardLight", v)}
-              />
-              <ColorField
-                label="Dark squares"
-                value={settings.boardDark}
-                onChange={(v) => onChange("boardDark", v)}
-              />
-            </section>
-
-            <section className="modal-section">
-              <h3 className="modal-subtitle">Interface</h3>
-              <ColorField
-                label="Page background"
-                value={settings.pageBg}
-                onChange={(v) => onChange("pageBg", v)}
-              />
-              <ColorField
-                label="Accent color"
-                value={settings.accent}
-                onChange={(v) => onChange("accent", v)}
-              />
-            </section>
+            {tab === "interface" && (
+              <div className="setting-group">
+                <ColorRow
+                  label="Page background"
+                  value={settings.pageBg}
+                  onChange={(v) => onChange("pageBg", v)}
+                />
+                <ColorRow
+                  label="Accent color"
+                  value={settings.accent}
+                  onChange={(v) => onChange("accent", v)}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -153,15 +231,52 @@ export default function Settings({
   );
 }
 
-function ColorField({ label, value, onChange }) {
+function ColorRow({ label, value, onChange }) {
   return (
-    <label className="color-field">
-      <span>{label}</span>
+    <label className="setting-row">
+      <span className="setting-text">
+        <span className="setting-label">{label}</span>
+      </span>
       <input
+        className="setting-color"
         type="color"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
     </label>
+  );
+}
+
+function HighlightRow({
+  label,
+  description,
+  enabled,
+  color,
+  onToggle,
+  onColor,
+}) {
+  return (
+    <div className="setting-row">
+      <label className="setting-main">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(e) => onToggle(e.target.checked)}
+        />
+        <span className="toggle-track" />
+        <span className="setting-text">
+          <span className="setting-label">{label}</span>
+          <span className="setting-desc">{description}</span>
+        </span>
+      </label>
+      <input
+        className="setting-color"
+        type="color"
+        value={color}
+        disabled={!enabled}
+        onChange={(e) => onColor(e.target.value)}
+        aria-label={`${label} color`}
+      />
+    </div>
   );
 }

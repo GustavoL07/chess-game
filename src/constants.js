@@ -8,7 +8,16 @@ export const DEFAULT_SETTINGS = {
   pageBg: "#1f1e1b",
   boardLight: "#ddd4c6",
   boardDark: "#0d453e",
-  accent: "#81b64c",
+  accent: "#165476",
+
+  showMoveHints: true,
+  moveHintColor: "#00ff00",
+  showSelected: true,
+  selectedColor: "#ffea00",
+  showCaptures: true,
+  captureColor: "#ff4d4d",
+  showHint: true,
+  hintColor: "#4da3ff",
 };
 
 export const BOARD_THEMES = [

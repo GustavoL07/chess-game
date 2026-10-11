@@ -21,11 +21,22 @@ export function useSettings() {
   const [settings, setSettings] = useState(load);
 
   useEffect(() => {
-    const style = document.documentElement.style;
+    const root = document.documentElement;
+    const style = root.style;
+
     style.setProperty("--page-bg", settings.pageBg);
     style.setProperty("--board-light", settings.boardLight);
     style.setProperty("--board-dark", settings.boardDark);
     style.setProperty("--accent", settings.accent);
+    style.setProperty("--move-hint", settings.moveHintColor);
+    style.setProperty("--select-color", settings.selectedColor);
+    style.setProperty("--capture-color", settings.captureColor);
+    style.setProperty("--hint-color", settings.hintColor);
+
+    root.toggleAttribute("data-hide-move-hints", !settings.showMoveHints);
+    root.toggleAttribute("data-hide-selected", !settings.showSelected);
+    root.toggleAttribute("data-hide-captures", !settings.showCaptures);
+    root.toggleAttribute("data-hide-hint", !settings.showHint);
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
