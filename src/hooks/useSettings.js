@@ -37,12 +37,11 @@ export function useSettings() {
     root.toggleAttribute("data-hide-selected", !settings.showSelected);
     root.toggleAttribute("data-hide-captures", !settings.showCaptures);
     root.toggleAttribute("data-hide-hint", !settings.showHint);
+    root.toggleAttribute("data-hide-coordinates", !settings.showCoordinates);
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    } catch {
-      // armazenamento indisponível: segue sem persistir
-    }
+    } catch {}
   }, [settings]);
 
   function update(key, value) {

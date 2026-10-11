@@ -353,6 +353,10 @@ label.setting-row {
   outline-offset: 2px;
 }
 
+.setting-group + .modal-subtitle {
+  margin-top: 26px;
+}
+
 @media (max-width: 520px) {
   .settings-head,
   .settings-panel,

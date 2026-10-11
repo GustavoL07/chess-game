@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = {
   captureColor: "#ff4d4d",
   showHint: true,
   hintColor: "#4da3ff",
+  showCoordinates: true,
 };
 
 export const BOARD_THEMES = [

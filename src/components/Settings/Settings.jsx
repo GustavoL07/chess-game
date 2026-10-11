@@ -124,6 +124,15 @@ export default function Settings({
 
             {tab === "board" && (
               <>
+                <h3 className="modal-subtitle">Grid</h3>
+                <div className="setting-group">
+                  <ToggleRow
+                    label="Square names"
+                    description="Letters and numbers around the board"
+                    enabled={settings.showCoordinates}
+                    onToggle={(v) => onChange("showCoordinates", v)}
+                  />
+                </div>
                 <h3 className="modal-subtitle">Themes</h3>
                 <div className="theme-grid">
                   {BOARD_THEMES.map((theme) => {
@@ -166,7 +175,7 @@ export default function Settings({
 
             {tab === "highlights" && (
               <div className="setting-group">
-                <HighlightRow
+                <ToggleRow
                   label="Possible moves"
                   description="Dots on the squares a piece can reach"
                   enabled={settings.showMoveHints}
@@ -174,7 +183,7 @@ export default function Settings({
                   onToggle={(v) => onChange("showMoveHints", v)}
                   onColor={(v) => onChange("moveHintColor", v)}
                 />
-                <HighlightRow
+                <ToggleRow
                   label="Selected piece"
                   description="Outline and lift on the chosen piece"
                   enabled={settings.showSelected}
@@ -182,7 +191,7 @@ export default function Settings({
                   onToggle={(v) => onChange("showSelected", v)}
                   onColor={(v) => onChange("selectedColor", v)}
                 />
-                <HighlightRow
+                <ToggleRow
                   label="Capturable pieces"
                   description="Ring around pieces you can take"
                   enabled={settings.showCaptures}
@@ -190,7 +199,7 @@ export default function Settings({
                   onToggle={(v) => onChange("showCaptures", v)}
                   onColor={(v) => onChange("captureColor", v)}
                 />
-                <HighlightRow
+                <ToggleRow
                   label="AI hint"
                   description="Piece to move and its target square"
                   enabled={settings.showHint}
@@ -247,14 +256,7 @@ function ColorRow({ label, value, onChange }) {
   );
 }
 
-function HighlightRow({
-  label,
-  description,
-  enabled,
-  color,
-  onToggle,
-  onColor,
-}) {
+function ToggleRow({ label, description, enabled, color, onToggle, onColor }) {
   return (
     <div className="setting-row">
       <label className="setting-main">
@@ -269,14 +271,17 @@ function HighlightRow({
           <span className="setting-desc">{description}</span>
         </span>
       </label>
-      <input
-        className="setting-color"
-        type="color"
-        value={color}
-        disabled={!enabled}
-        onChange={(e) => onColor(e.target.value)}
-        aria-label={`${label} color`}
-      />
+
+      {onColor && (
+        <input
+          className="setting-color"
+          type="color"
+          value={color}
+          disabled={!enabled}
+          onChange={(e) => onColor(e.target.value)}
+          aria-label={`${label} color`}
+        />
+      )}
     </div>
   );
 }

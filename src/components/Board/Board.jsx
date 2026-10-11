@@ -23,16 +23,20 @@ export default function Board({
   pieceSet,
 }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
+  // promoção aguardando escolha: { from, to, color }
   const [pendingPromotion, setPendingPromotion] = useState(null);
 
+  // ao revisar o histórico, limpa a seleção
   useEffect(() => {
     if (viewOnly) setSelectedSquare(null);
   }, [viewOnly]);
 
+  // qualquer mudança de posição (undo, navegação) invalida a promoção pendente
   useEffect(() => {
     setPendingPromotion(null);
   }, [fen, viewOnly]);
 
+  // Esc cancela a escolha
   useEffect(() => {
     if (!pendingPromotion) return;
     function onKey(e) {
@@ -51,6 +55,7 @@ export default function Board({
     ? game.moves({ square: selectedSquare, verbose: true })
     : [];
 
+  // flag "c" = captura normal (a peça está na casa de destino)
   const movableSquares = new Set(
     targets.filter((m) => !m.flags.includes("c")).map((m) => m.to),
   );
@@ -86,11 +91,13 @@ export default function Board({
       .moves({ square: selectedSquare, verbose: true })
       .filter((m) => m.to === targetSquare);
 
+    // lance ilegal: tenta trocar a seleção
     if (candidates.length === 0) {
       selectIfOwn(targetSquare, piece);
       return;
     }
 
+    // promoção: espera o jogador escolher a peça
     if (candidates[0].promotion) {
       setPendingPromotion({
         from: selectedSquare,
@@ -114,7 +121,9 @@ export default function Board({
       const move = game.move({ from, to, promotion: pieceType });
       setSelectedSquare(null);
       onMove(move);
-    } catch {}
+    } catch {
+      // a posição mudou enquanto a janela estava aberta
+    }
   }
 
   function getMoveStyle(square, rowIndex, colIndex) {
@@ -126,6 +135,7 @@ export default function Board({
     };
   }
 
+  // posição visual da janela de promoção (considera o tabuleiro girado)
   let promotionPlacement = null;
   if (pendingPromotion) {
     const { row, col } = squareToPosition(pendingPromotion.to);
@@ -135,47 +145,69 @@ export default function Board({
     };
   }
 
+  // nomes das casas: seguem a orientação do tabuleiro
+  // (brancas embaixo: 8..1 e a..h | pretas embaixo: 1..8 e h..a)
+  const ranks = indices.map((rowIndex) => 8 - rowIndex);
+  const files = indices.map((colIndex) => String.fromCharCode(97 + colIndex));
+
   return (
-    <div className="board">
-      {indices.map((rowIndex) =>
-        indices.map((colIndex) => {
-          const piece = board[rowIndex][colIndex];
-          const square = toSquareNotation(rowIndex, colIndex);
+    <div className="board-wrap">
+      <div className="board-ranks" aria-hidden="true">
+        {ranks.map((rank) => (
+          <span key={rank}>{rank}</span>
+        ))}
+      </div>
 
-          return (
-            <Square
-              key={square}
-              piece={piece}
-              colorClass={getSquareColor(rowIndex, colIndex)}
-              isSelected={selectedSquare === square}
-              isMovable={movableSquares.has(square)}
-              isCapturable={capturableSquares.has(square)}
-              isHintFrom={!viewOnly && hint?.from === square}
-              isHintTo={!viewOnly && hint?.to === square}
-              isInCheck={
-                !!piece && inCheck && piece.type === "k" && piece.color === turn
-              }
-              moveStyle={
-                piece ? getMoveStyle(square, rowIndex, colIndex) : undefined
-              }
-              moveKey={lastMove?.id}
-              pieceSet={pieceSet}
-              onClick={() => handleSquareClick(rowIndex, colIndex)}
-            />
-          );
-        }),
-      )}
+      <div className="board">
+        {indices.map((rowIndex) =>
+          indices.map((colIndex) => {
+            const piece = board[rowIndex][colIndex];
+            const square = toSquareNotation(rowIndex, colIndex);
 
-      {pendingPromotion && (
-        <PromotionPicker
-          color={pendingPromotion.color}
-          col={promotionPlacement.col}
-          atTop={promotionPlacement.atTop}
-          pieceSet={pieceSet}
-          onSelect={handlePromotionPick}
-          onCancel={() => setPendingPromotion(null)}
-        />
-      )}
+            return (
+              <Square
+                key={square}
+                piece={piece}
+                colorClass={getSquareColor(rowIndex, colIndex)}
+                isSelected={selectedSquare === square}
+                isMovable={movableSquares.has(square)}
+                isCapturable={capturableSquares.has(square)}
+                isHintFrom={!viewOnly && hint?.from === square}
+                isHintTo={!viewOnly && hint?.to === square}
+                isInCheck={
+                  !!piece &&
+                  inCheck &&
+                  piece.type === "k" &&
+                  piece.color === turn
+                }
+                moveStyle={
+                  piece ? getMoveStyle(square, rowIndex, colIndex) : undefined
+                }
+                moveKey={lastMove?.id}
+                pieceSet={pieceSet}
+                onClick={() => handleSquareClick(rowIndex, colIndex)}
+              />
+            );
+          }),
+        )}
+
+        {pendingPromotion && (
+          <PromotionPicker
+            color={pendingPromotion.color}
+            col={promotionPlacement.col}
+            atTop={promotionPlacement.atTop}
+            pieceSet={pieceSet}
+            onSelect={handlePromotionPick}
+            onCancel={() => setPendingPromotion(null)}
+          />
+        )}
+      </div>
+
+      <div className="board-files" aria-hidden="true">
+        {files.map((file) => (
+          <span key={file}>{file}</span>
+        ))}
+      </div>
     </div>
   );
 }
