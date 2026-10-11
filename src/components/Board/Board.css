@@ -2,6 +2,7 @@
   --board-size: 560px;
   --sq: calc(var(--board-size) / 8);
 
+  position: relative;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);

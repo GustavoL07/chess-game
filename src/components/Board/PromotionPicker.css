@@ -1,0 +1,80 @@
+.promotion-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 19;
+  background: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+.promotion-picker {
+  position: absolute;
+  z-index: 20;
+  left: calc(var(--col) * 12.5%);
+  width: 12.5%;
+  height: 50%;
+  display: flex;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--board-light);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  animation: promotion-in 0.15s ease-out;
+}
+
+.promotion-picker.from-top {
+  top: 0;
+  flex-direction: column;
+  transform-origin: top;
+}
+
+.promotion-picker.from-bottom {
+  bottom: 0;
+  flex-direction: column-reverse;
+  transform-origin: bottom;
+}
+
+.promotion-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.promotion-option + .promotion-option {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.promotion-picker.from-bottom .promotion-option + .promotion-option {
+  border-top: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.promotion-option:hover {
+  background: color-mix(in srgb, var(--accent) 45%, var(--board-light));
+}
+
+.promotion-option img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+
+.promotion-option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+@keyframes promotion-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

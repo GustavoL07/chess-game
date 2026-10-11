@@ -6,6 +6,7 @@ import {
   squareToPosition,
 } from "../../utils/pieces";
 import Square from "./Square";
+import PromotionPicker from "./PromotionPicker";
 import "./Board.css";
 
 const INDICES = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -22,10 +23,24 @@ export default function Board({
   pieceSet,
 }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
+  const [pendingPromotion, setPendingPromotion] = useState(null);
 
   useEffect(() => {
     if (viewOnly) setSelectedSquare(null);
   }, [viewOnly]);
+
+  useEffect(() => {
+    setPendingPromotion(null);
+  }, [fen, viewOnly]);
+
+  useEffect(() => {
+    if (!pendingPromotion) return;
+    function onKey(e) {
+      if (e.key === "Escape") setPendingPromotion(null);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pendingPromotion]);
 
   const displayGame = viewOnly ? new Chess(fen) : game;
   const board = displayGame.board();
@@ -52,7 +67,7 @@ export default function Board({
   }
 
   function handleSquareClick(rowIndex, colIndex) {
-    if (viewOnly || locked) return;
+    if (viewOnly || locked || pendingPromotion) return;
 
     const targetSquare = toSquareNotation(rowIndex, colIndex);
     const piece = game.get(targetSquare);
@@ -67,18 +82,39 @@ export default function Board({
       return;
     }
 
-    try {
-      const move = game.move({
+    const candidates = game
+      .moves({ square: selectedSquare, verbose: true })
+      .filter((m) => m.to === targetSquare);
+
+    if (candidates.length === 0) {
+      selectIfOwn(targetSquare, piece);
+      return;
+    }
+
+    if (candidates[0].promotion) {
+      setPendingPromotion({
         from: selectedSquare,
         to: targetSquare,
-        promotion: "q",
+        color: game.turn(),
       });
+      return;
+    }
+
+    const move = game.move({ from: selectedSquare, to: targetSquare });
+    setSelectedSquare(null);
+    onMove(move);
+  }
+
+  function handlePromotionPick(pieceType) {
+    if (!pendingPromotion) return;
+    const { from, to } = pendingPromotion;
+    setPendingPromotion(null);
+
+    try {
+      const move = game.move({ from, to, promotion: pieceType });
       setSelectedSquare(null);
       onMove(move);
-      return;
     } catch {}
-
-    selectIfOwn(targetSquare, piece);
   }
 
   function getMoveStyle(square, rowIndex, colIndex) {
@@ -87,6 +123,15 @@ export default function Board({
     return {
       "--dx": (from.col - colIndex) * dir,
       "--dy": (from.row - rowIndex) * dir,
+    };
+  }
+
+  let promotionPlacement = null;
+  if (pendingPromotion) {
+    const { row, col } = squareToPosition(pendingPromotion.to);
+    promotionPlacement = {
+      col: flipped ? 7 - col : col,
+      atTop: (flipped ? 7 - row : row) === 0,
     };
   }
 
@@ -114,11 +159,22 @@ export default function Board({
                 piece ? getMoveStyle(square, rowIndex, colIndex) : undefined
               }
               moveKey={lastMove?.id}
-              onClick={() => handleSquareClick(rowIndex, colIndex)}
               pieceSet={pieceSet}
+              onClick={() => handleSquareClick(rowIndex, colIndex)}
             />
           );
         }),
+      )}
+
+      {pendingPromotion && (
+        <PromotionPicker
+          color={pendingPromotion.color}
+          col={promotionPlacement.col}
+          atTop={promotionPlacement.atTop}
+          pieceSet={pieceSet}
+          onSelect={handlePromotionPick}
+          onCancel={() => setPendingPromotion(null)}
+        />
       )}
     </div>
   );
