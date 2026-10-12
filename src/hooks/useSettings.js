@@ -33,6 +33,7 @@ export function useSettings() {
     style.setProperty("--capture-color", settings.captureColor);
     style.setProperty("--hint-color", settings.hintColor);
     style.setProperty("--last-move", settings.lastMoveColor);
+    style.setProperty("--annotation-color", settings.annotationColor);
 
     root.toggleAttribute("data-hide-move-hints", !settings.showMoveHints);
     root.toggleAttribute("data-hide-selected", !settings.showSelected);

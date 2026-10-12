@@ -221,6 +221,14 @@ export default function Settings({
                   onToggle={(v) => onChange("showHint", v)}
                   onColor={(v) => onChange("hintColor", v)}
                 />
+                <ToggleRow
+                  label="Arrows and circles"
+                  description="Right-click to draw, left-click to clear"
+                  enabled={settings.showAnnotations}
+                  color={settings.annotationColor}
+                  onToggle={(v) => onChange("showAnnotations", v)}
+                  onColor={(v) => onChange("annotationColor", v)}
+                />
               </div>
             )}
 

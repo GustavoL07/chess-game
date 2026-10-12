@@ -149,6 +149,7 @@ export default function App() {
         pieceSet={settings.pieceSet}
         captured={chess.captured}
         materialDiff={chess.materialDiff}
+        annotationsEnabled={settings.showAnnotations}
       />
 
       <History

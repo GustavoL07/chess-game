@@ -22,6 +22,8 @@ export const DEFAULT_SETTINGS = {
   showCoordinates: true,
   showLastMove: true,
   lastMoveColor: "#f5c542",
+  showAnnotations: true,
+  annotationColor: "#b36bff",
 };
 
 export const BOARD_THEMES = [
