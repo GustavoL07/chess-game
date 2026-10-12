@@ -190,7 +190,9 @@ export default function Board({
     // desenhar a mesma marcação de novo a remove
     setAnnotations((prev) => {
       const same = (a) => a.from === from && a.to === to;
-      return prev.some(same) ? prev.filter((a) => !same(a)) : [...prev, { from, to }];
+      return prev.some(same)
+        ? prev.filter((a) => !same(a))
+        : [...prev, { from, to }];
     });
   }
 

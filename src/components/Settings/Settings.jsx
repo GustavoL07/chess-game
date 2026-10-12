@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PIECE_SETS, getPieceUrl, formatSetName } from "../../utils/pieceSets";
 import { BOARD_THEMES } from "../../constants";
+import Presets from "./Presets";
 import "./Settings.css";
 
 const PREVIEW = [
@@ -31,6 +32,10 @@ export default function Settings({
   onApplyTheme,
   onReset,
   onClose,
+  presets,
+  onApplyPreset,
+  onSavePreset,
+  onDeletePreset,
 }) {
   const [tab, setTab] = useState("pieces");
   const bodyRef = useRef(null);
@@ -102,24 +107,36 @@ export default function Settings({
         >
           <div className="settings-panel">
             {tab === "pieces" && (
-              <div className="piece-grid">
-                {PIECE_SETS.map((name) => (
-                  <button
-                    key={name}
-                    type="button"
-                    className={`piece-option ${settings.pieceSet === name ? "active" : ""}`}
-                    onClick={() => onChange("pieceSet", name)}
-                  >
-                    <span className="piece-option-images">
-                      <img src={getPieceUrl(name, "w", "n")} alt="" />
-                      <img src={getPieceUrl(name, "b", "n")} alt="" />
-                    </span>
-                    <span className="piece-option-name">
-                      {formatSetName(name)}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              <>
+                <h3 className="modal-subtitle">Presets</h3>
+                <Presets
+                  presets={presets}
+                  settings={settings}
+                  onApply={onApplyPreset}
+                  onSave={onSavePreset}
+                  onDelete={onDeletePreset}
+                />
+
+                <h3 className="modal-subtitle">Piece set</h3>
+                <div className="piece-grid">
+                  {PIECE_SETS.map((name) => (
+                    <button
+                      key={name}
+                      type="button"
+                      className={`piece-option ${settings.pieceSet === name ? "active" : ""}`}
+                      onClick={() => onChange("pieceSet", name)}
+                    >
+                      <span className="piece-option-images">
+                        <img src={getPieceUrl(name, "w", "n")} alt="" />
+                        <img src={getPieceUrl(name, "b", "n")} alt="" />
+                      </span>
+                      <span className="piece-option-name">
+                        {formatSetName(name)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
 
             {tab === "board" && (

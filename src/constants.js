@@ -58,3 +58,89 @@ export const BOARD_THEMES = [
   { id: "volcano", label: "Volcano", light: "#f2d4bd", dark: "#873b2e" },
   { id: "arctic", label: "Arctic", light: "#eaf3f8", dark: "#527d99" },
 ];
+
+// o que cada preset guarda (só aparência; interruptores não entram)
+export const PRESET_KEYS = [
+  "pieceSet",
+  "boardLight",
+  "boardDark",
+  "pageBg",
+  "accent",
+  "moveHintColor",
+  "selectedColor",
+  "captureColor",
+  "hintColor",
+  "lastMoveColor",
+  "annotationColor",
+];
+
+export const MAX_SAVED_PRESETS = 3;
+
+export const BUILT_IN_PRESETS = [
+  {
+    id: "classic",
+    name: "Classic",
+    values: {
+      pieceSet: "classic",
+      boardLight: "#f0d9b5",
+      boardDark: "#b58863",
+      pageBg: "#1f1e1b",
+      accent: "#81b64c",
+    },
+  },
+  {
+    id: "wood",
+    name: "Wood",
+    values: {
+      pieceSet: "neo_wood",
+      boardLight: "#ecd9b5",
+      boardDark: "#a3774e",
+      pageBg: "#1c1713",
+      accent: "#d9a441",
+    },
+  },
+  {
+    id: "knights",
+    name: "Knights",
+    values: {
+      pieceSet: "8qetl",
+      boardLight: "#c5c5c5",
+      boardDark: "#292929",
+      pageBg: "#1f1e1b",
+      accent: "#1f6b93",
+    },
+  },
+  {
+    id: "ocean",
+    name: "Ocean",
+    values: {
+      pieceSet: "ocean",
+      boardLight: "#dee3e6",
+      boardDark: "#8ca2ad",
+      pageBg: "#111a21",
+      accent: "#3a8fd9",
+    },
+  },
+  {
+    id: "icy",
+    name: "Icy",
+    values: {
+      pieceSet: "icy_sea",
+      boardLight: "#e6f0f5",
+      boardDark: "#6f9bb3",
+      pageBg: "#10181d",
+      accent: "#5cc8e8",
+    },
+  },
+  {
+    id: "neon",
+    name: "Neon",
+    values: {
+      pieceSet: "neon",
+      boardLight: "#2e2e4d",
+      boardDark: "#16162b",
+      pageBg: "#0b0b17",
+      accent: "#00e5ff",
+    },
+  },
+];

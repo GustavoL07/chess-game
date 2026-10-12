@@ -1,52 +1,92 @@
 import { useState, useEffect } from "react";
-import { DEFAULT_SETTINGS } from "../constants";
+import {
+  DEFAULT_SETTINGS,
+  PRESET_KEYS,
+  BUILT_IN_PRESETS,
+  MAX_SAVED_PRESETS,
+} from "../constants";
 import { PIECE_SETS } from "../utils/pieceSets";
 
-const STORAGE_KEY = "chess-settings";
+const SETTINGS_KEY = "chess-settings";
+const PRESETS_KEY = "chess-presets";
 
-function load() {
+// configuração -> variável CSS em :root
+const COLOR_VARS = {
+  pageBg: "--page-bg",
+  boardLight: "--board-light",
+  boardDark: "--board-dark",
+  accent: "--accent",
+  moveHintColor: "--move-hint",
+  selectedColor: "--select-color",
+  captureColor: "--capture-color",
+  hintColor: "--hint-color",
+  lastMoveColor: "--last-move",
+  annotationColor: "--annotation-color",
+};
+
+// interruptor -> atributo em :root que esconde o destaque quando a opção está desligada
+const HIDE_ATTRS = {
+  showMoveHints: "data-hide-move-hints",
+  showSelected: "data-hide-selected",
+  showCaptures: "data-hide-captures",
+  showHint: "data-hide-hint",
+  showLastMove: "data-hide-last-move",
+  showCoordinates: "data-hide-coordinates",
+  showCaptured: "data-hide-captured",
+};
+
+function readJSON(key) {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    const merged = { ...DEFAULT_SETTINGS, ...saved };
-    if (!PIECE_SETS.includes(merged.pieceSet)) {
-      merged.pieceSet = DEFAULT_SETTINGS.pieceSet;
-    }
-    return merged;
+    return JSON.parse(localStorage.getItem(key));
   } catch {
-    return { ...DEFAULT_SETTINGS };
+    return null;
   }
 }
 
+function writeJSON(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // armazenamento indisponível: segue sem persistir
+  }
+}
+
+function loadSettings() {
+  const merged = { ...DEFAULT_SETTINGS, ...readJSON(SETTINGS_KEY) };
+  if (!PIECE_SETS.includes(merged.pieceSet)) {
+    merged.pieceSet = DEFAULT_SETTINGS.pieceSet;
+  }
+  return merged;
+}
+
+function loadSavedPresets() {
+  const saved = readJSON(PRESETS_KEY);
+  if (!Array.isArray(saved)) return [];
+  return saved.filter((p) => p && p.id && p.name && p.values);
+}
+
+// Preferências visuais: aplica como variáveis CSS e salva no navegador.
+// Também gerencia os presets (combinações de aparência).
 export function useSettings() {
-  const [settings, setSettings] = useState(load);
+  const [settings, setSettings] = useState(loadSettings);
+  const [savedPresets, setSavedPresets] = useState(loadSavedPresets);
 
   useEffect(() => {
     const root = document.documentElement;
-    const style = root.style;
 
-    style.setProperty("--page-bg", settings.pageBg);
-    style.setProperty("--board-light", settings.boardLight);
-    style.setProperty("--board-dark", settings.boardDark);
-    style.setProperty("--accent", settings.accent);
-    style.setProperty("--move-hint", settings.moveHintColor);
-    style.setProperty("--select-color", settings.selectedColor);
-    style.setProperty("--capture-color", settings.captureColor);
-    style.setProperty("--hint-color", settings.hintColor);
-    style.setProperty("--last-move", settings.lastMoveColor);
-    style.setProperty("--annotation-color", settings.annotationColor);
+    for (const [key, cssVar] of Object.entries(COLOR_VARS)) {
+      root.style.setProperty(cssVar, settings[key]);
+    }
+    for (const [key, attr] of Object.entries(HIDE_ATTRS)) {
+      root.toggleAttribute(attr, !settings[key]);
+    }
 
-    root.toggleAttribute("data-hide-move-hints", !settings.showMoveHints);
-    root.toggleAttribute("data-hide-selected", !settings.showSelected);
-    root.toggleAttribute("data-hide-captures", !settings.showCaptures);
-    root.toggleAttribute("data-hide-hint", !settings.showHint);
-    root.toggleAttribute("data-hide-coordinates", !settings.showCoordinates);
-    root.toggleAttribute("data-hide-last-move", !settings.showLastMove);
-    root.toggleAttribute("data-hide-captured", !settings.showCaptured);
-
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    } catch {}
+    writeJSON(SETTINGS_KEY, settings);
   }, [settings]);
+
+  useEffect(() => {
+    writeJSON(PRESETS_KEY, savedPresets);
+  }, [savedPresets]);
 
   function update(key, value) {
     setSettings((prev) => ({ ...prev, [key]: value }));
@@ -64,5 +104,45 @@ export function useSettings() {
     setSettings({ ...DEFAULT_SETTINGS });
   }
 
-  return { settings, update, applyTheme, reset };
+  // ---- presets ----
+
+  // os de fábrica só aparecem se o conjunto de peças deles existir em assets/pieces
+  const builtIn = BUILT_IN_PRESETS.filter(
+    (p) => !p.values.pieceSet || PIECE_SETS.includes(p.values.pieceSet),
+  ).map((p) => ({ ...p, builtIn: true }));
+
+  const presets = [...builtIn, ...savedPresets];
+
+  function applyPreset(preset) {
+    const values = { ...preset.values };
+    // um preset salvo pode apontar para um conjunto de peças que não existe mais
+    if (values.pieceSet && !PIECE_SETS.includes(values.pieceSet)) {
+      delete values.pieceSet;
+    }
+    setSettings((prev) => ({ ...prev, ...values }));
+  }
+
+  function savePreset(name) {
+    const values = Object.fromEntries(PRESET_KEYS.map((k) => [k, settings[k]]));
+    setSavedPresets((prev) =>
+      prev.length >= MAX_SAVED_PRESETS
+        ? prev
+        : [...prev, { id: `user-${Date.now()}`, name, values }],
+    );
+  }
+
+  function deletePreset(id) {
+    setSavedPresets((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  return {
+    settings,
+    update,
+    applyTheme,
+    reset,
+    presets,
+    applyPreset,
+    savePreset,
+    deletePreset,
+  };
 }

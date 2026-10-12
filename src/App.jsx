@@ -30,7 +30,16 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [confirmingRestart, setConfirmingRestart] = useState(false);
 
-  const { settings, update, applyTheme, reset } = useSettings();
+  const {
+    settings,
+    update,
+    applyTheme,
+    reset,
+    presets,
+    applyPreset,
+    savePreset,
+    deletePreset,
+  } = useSettings();
   const chess = useChessGame();
   const { game, history, result, viewOnly } = chess;
 
@@ -123,6 +132,10 @@ export default function App() {
           onApplyTheme={applyTheme}
           onReset={reset}
           onClose={() => setShowSettings(false)}
+          presets={presets}
+          onApplyPreset={applyPreset}
+          onSavePreset={savePreset}
+          onDeletePreset={deletePreset}
         />
       )}
 
