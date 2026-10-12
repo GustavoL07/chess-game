@@ -89,6 +89,10 @@ export default function App() {
     setEndDismissed(false);
   }
 
+  function toggleHistory() {
+    update("historyCollapsed", !settings.historyCollapsed);
+  }
+
   const isPlayerTurn = started && !result && game.turn() === playerColor;
   const minUndoLength = playerColor === "b" ? 1 : 0;
   const canUndo = started && !ai.thinking && history.length > minUndoLength;
@@ -102,6 +106,7 @@ export default function App() {
       u: () => canUndo && handleUndo(),
       r: requestRestart,
       f: () => setManualFlip((flipped) => !flipped),
+      c: toggleHistory,
       ArrowLeft: () => chess.goToPlay(chess.currentPlay - 1),
       ArrowRight: () => chess.goToPlay(chess.currentPlay + 1),
       ArrowUp: () => chess.goToPlay(0),
@@ -183,6 +188,10 @@ export default function App() {
           thinking: ai.thinking,
           viewOnly,
         })}
+        pieceSet={settings.pieceSet}
+        moveIcons={settings.showMoveIcons}
+        collapsed={settings.historyCollapsed}
+        onToggleCollapse={toggleHistory}
       />
     </div>
   );

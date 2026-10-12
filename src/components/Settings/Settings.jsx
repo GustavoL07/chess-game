@@ -261,6 +261,12 @@ export default function Settings({
                   value={settings.accent}
                   onChange={(v) => onChange("accent", v)}
                 />
+                <ToggleRow
+                  label="Piece icons in moves"
+                  description="Show pieces as images instead of letters (Nf3)"
+                  enabled={settings.showMoveIcons}
+                  onToggle={(v) => onChange("showMoveIcons", v)}
+                />
               </div>
             )}
           </div>

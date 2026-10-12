@@ -24,6 +24,8 @@ export const DEFAULT_SETTINGS = {
   lastMoveColor: "#f5c542",
   showAnnotations: true,
   annotationColor: "#b36bff",
+  showMoveIcons: false,
+  historyCollapsed: false,
 };
 
 export const BOARD_THEMES = [
