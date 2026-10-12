@@ -1,5 +1,6 @@
 import "./App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useChessGame } from "./hooks/useChessGame";
 import { useAI } from "./hooks/useAI";
 import { DEFAULT_LEVEL } from "./constants";
@@ -27,6 +28,7 @@ export default function App() {
   const [level, setLevel] = useState(DEFAULT_LEVEL);
   const [manualFlip, setManualFlip] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [confirmingRestart, setConfirmingRestart] = useState(false);
 
   const { settings, update, applyTheme, reset } = useSettings();
   const chess = useChessGame();
@@ -40,6 +42,21 @@ export default function App() {
     history,
     onMove: chess.applyMove,
   });
+
+  useEffect(() => {
+    if (!confirmingRestart) return;
+    const id = setTimeout(() => setConfirmingRestart(false), 3000);
+    return () => clearTimeout(id);
+  }, [confirmingRestart]);
+
+  function requestRestart() {
+    if (history.length > 0 && !confirmingRestart) {
+      setConfirmingRestart(true);
+      return;
+    }
+    setConfirmingRestart(false);
+    handleNewGame();
+  }
 
   function handleStart({ color, level }) {
     const resolved =
@@ -67,6 +84,22 @@ export default function App() {
   const minUndoLength = playerColor === "b" ? 1 : 0;
   const canUndo = started && !ai.thinking && history.length > minUndoLength;
   const canHint = isPlayerTurn && !ai.thinking && !ai.hinting && !viewOnly;
+
+  const modalOpen =
+    !started || showSettings || Boolean(result && !endDismissed);
+  useKeyboardShortcuts(
+    {
+      h: () => canHint && ai.requestHint(),
+      u: () => canUndo && handleUndo(),
+      r: requestRestart,
+      f: () => setManualFlip((flipped) => !flipped),
+      ArrowLeft: () => chess.goToPlay(chess.currentPlay - 1),
+      ArrowRight: () => chess.goToPlay(chess.currentPlay + 1),
+      ArrowUp: () => chess.goToPlay(0),
+      ArrowDown: () => chess.goToPlay(history.length),
+    },
+    !modalOpen,
+  );
 
   return (
     <div className="app">
@@ -123,7 +156,8 @@ export default function App() {
         onUndo={handleUndo}
         onHint={ai.requestHint}
         onFlip={() => setManualFlip((f) => !f)}
-        onRestart={handleNewGame}
+        onRestart={requestRestart}
+        confirmingRestart={confirmingRestart}
         canUndo={canUndo}
         canHint={canHint}
         status={getStatus({

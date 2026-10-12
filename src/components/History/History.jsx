@@ -9,6 +9,7 @@ export default function History({
   onHint,
   onFlip,
   onRestart,
+  confirmingRestart = false,
   canUndo = false,
   canHint = false,
   status = "",
@@ -58,7 +59,6 @@ export default function History({
       <div className="history-header">
         <span className="history-title">History</span>
         {status && <span className="history-status">{status}</span>}
-        
       </div>
 
       <div className="history-list" ref={listRef}>
@@ -98,6 +98,7 @@ export default function History({
             aria-label="First position"
             onClick={() => onSelect(0)}
             disabled={atStart}
+            title="First position (↑)"
           >
             ⏮
           </button>
@@ -106,6 +107,7 @@ export default function History({
             aria-label="Previous move"
             onClick={() => onSelect(currentPlay - 1)}
             disabled={atStart}
+            title="Previous move (←)"
           >
             ◀
           </button>
@@ -114,6 +116,7 @@ export default function History({
             aria-label="Next move"
             onClick={() => onSelect(currentPlay + 1)}
             disabled={atEnd}
+            title="Next move (→)"
           >
             ▶
           </button>
@@ -122,6 +125,7 @@ export default function History({
             aria-label="Last position"
             onClick={() => onSelect(moves.length)}
             disabled={atEnd}
+            title="Current position (↓)"
           >
             ⏭
           </button>
@@ -133,6 +137,8 @@ export default function History({
             className="action-btn"
             onClick={onUndo}
             disabled={!canUndo}
+            title="Undo (U)"
+            aria-keyshortcuts="U"
           >
             <span className="action-icon">↶</span>
             <span>Undo</span>
@@ -142,21 +148,31 @@ export default function History({
             className="action-btn"
             onClick={onHint}
             disabled={!canHint}
+            title="AI Hint (H)"
+            aria-keyshortcuts="H"
           >
             <span className="action-icon">💡</span>
             <span>Hint</span>
           </button>
-          <button type="button" className="action-btn" onClick={onFlip}>
+          <button
+            type="button"
+            className="action-btn"
+            onClick={onFlip}
+            title="Flip board (F)"
+            aria-keyshortcuts="F"
+          >
             <span className="action-icon">⇅</span>
             <span>Flip</span>
           </button>
           <button
             type="button"
-            className={`action-btn ${confirming ? "danger" : ""}`}
-            onClick={handleRestart}
+            className={`action-btn ${confirmingRestart ? "danger" : ""}`}
+            onClick={onRestart}
+            title="Restart (R)"
+            aria-keyshortcuts="R"
           >
             <span className="action-icon">↻</span>
-            <span>{confirming ? "Sure?" : "Restart"}</span>
+            <span>{confirmingRestart ? "Sure?" : "Restart"}</span>
           </button>
         </div>
       </div>
