@@ -132,6 +132,12 @@ export default function Settings({
                     enabled={settings.showCoordinates}
                     onToggle={(v) => onChange("showCoordinates", v)}
                   />
+                  <ToggleRow
+                    label="Captured pieces"
+                    description="Taken pieces and material advantage"
+                    enabled={settings.showCaptured}
+                    onToggle={(v) => onChange("showCaptured", v)}
+                  />
                 </div>
                 <h3 className="modal-subtitle">Themes</h3>
                 <div className="theme-grid">

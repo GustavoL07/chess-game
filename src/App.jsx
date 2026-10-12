@@ -147,6 +147,8 @@ export default function App() {
         flipped={(playerColor === "b") !== manualFlip}
         hint={ai.hint}
         pieceSet={settings.pieceSet}
+        captured={chess.captured}
+        materialDiff={chess.materialDiff}
       />
 
       <History

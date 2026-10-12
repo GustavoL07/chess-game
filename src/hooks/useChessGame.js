@@ -1,26 +1,32 @@
 import { useState, useRef } from "react";
 import { Chess } from "chess.js";
 import { getResult } from "../utils/result";
+import { getCaptured, getMaterialDiff } from "../utils/material";
 
-// Estado da partida: tabuleiro, histórico, navegação e resultado.
 export function useChessGame() {
   const [game] = useState(() => new Chess());
   const [history, setHistory] = useState([]);
+  const [moveHistory, setMoveHistory] = useState([]); // { from, to, color, captured } por lance
   const [fenHistory, setFenHistory] = useState([game.fen()]);
   const [viewPlay, setViewPlay] = useState(null); // null = posição atual
   const [lastMove, setLastMove] = useState(null);
-  const [squareHistory, setSquareHistory] = useState([]); // { from, to } de cada lance
   const moveId = useRef(0);
 
-  function readSquares() {
+  function readMoves() {
     return game
       .history({ verbose: true })
-      .map(({ from, to }) => ({ from, to }));
+      .map(({ from, to, color, captured }) => ({
+        from,
+        to,
+        color,
+        captured: captured ?? null,
+      }));
   }
 
+  // Chame depois de um game.move() bem-sucedido
   function applyMove(move) {
     setHistory(game.history());
-    setSquareHistory(readSquares());
+    setMoveHistory(readMoves());
     setFenHistory((prev) => [...prev, game.fen()]);
     setViewPlay(null);
     setLastMove({ from: move.from, to: move.to, id: ++moveId.current });
@@ -31,6 +37,7 @@ export function useChessGame() {
     setViewPlay(clamped === history.length ? null : clamped);
   }
 
+  // Desfaz até voltar a ser a vez do jogador
   function undo(playerColor) {
     do {
       game.undo();
@@ -38,7 +45,7 @@ export function useChessGame() {
 
     const moves = game.history();
     setHistory(moves);
-    setSquareHistory(readSquares());
+    setMoveHistory(readMoves());
     setFenHistory((prev) => prev.slice(0, moves.length + 1));
     setViewPlay(null);
     setLastMove(null);
@@ -47,22 +54,25 @@ export function useChessGame() {
   function reset() {
     game.reset();
     setHistory([]);
-    setSquareHistory([]);
+    setMoveHistory([]);
     setFenHistory([game.fen()]);
     setViewPlay(null);
     setLastMove(null);
   }
 
   const currentPlay = viewPlay ?? history.length;
+  const displayedFen = fenHistory[currentPlay];
 
   return {
     game,
     history,
     lastMove,
-    highlightMove: currentPlay > 0 ? squareHistory[currentPlay - 1] : null,
+    highlightMove: currentPlay > 0 ? moveHistory[currentPlay - 1] : null,
+    captured: getCaptured(moveHistory, currentPlay),
+    materialDiff: getMaterialDiff(displayedFen),
     currentPlay,
     viewOnly: viewPlay !== null,
-    fen: fenHistory[currentPlay],
+    fen: displayedFen,
     result: game.isGameOver() ? getResult(game) : null,
     applyMove,
     goToPlay,

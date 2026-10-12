@@ -7,9 +7,11 @@ import {
 } from "../../utils/pieces";
 import Square from "./Square";
 import PromotionPicker from "./PromotionPicker";
+import CapturedPieces from "./CapturedPieces";
 import "./Board.css";
 
 const INDICES = [0, 1, 2, 3, 4, 5, 6, 7];
+const EMPTY_CAPTURED = { w: [], b: [] };
 
 export default function Board({
   game,
@@ -22,6 +24,8 @@ export default function Board({
   flipped,
   hint,
   pieceSet,
+  captured = EMPTY_CAPTURED,
+  materialDiff = 0,
 }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
   // promoção aguardando escolha: { from, to, color }
@@ -146,6 +150,13 @@ export default function Board({
     };
   }
 
+  // faixas de capturas: a de cima pertence à cor que está no topo
+  const topColor = flipped ? "w" : "b";
+  const bottomColor = flipped ? "b" : "w";
+  const opposite = (color) => (color === "w" ? "b" : "w");
+  const advantageOf = (color) =>
+    Math.max(0, color === "w" ? materialDiff : -materialDiff);
+
   // nomes das casas: seguem a orientação do tabuleiro
   // (brancas embaixo: 8..1 e a..h | pretas embaixo: 1..8 e h..a)
   const ranks = indices.map((rowIndex) => 8 - rowIndex);
@@ -153,6 +164,14 @@ export default function Board({
 
   return (
     <div className="board-wrap">
+      <CapturedPieces
+        position="top"
+        pieces={captured[topColor]}
+        color={opposite(topColor)}
+        advantage={advantageOf(topColor)}
+        pieceSet={pieceSet}
+      />
+
       <div className="board-ranks" aria-hidden="true">
         {ranks.map((rank) => (
           <span key={rank}>{rank}</span>
@@ -211,6 +230,14 @@ export default function Board({
           <span key={file}>{file}</span>
         ))}
       </div>
+
+      <CapturedPieces
+        position="bottom"
+        pieces={captured[bottomColor]}
+        color={opposite(bottomColor)}
+        advantage={advantageOf(bottomColor)}
+        pieceSet={pieceSet}
+      />
     </div>
   );
 }

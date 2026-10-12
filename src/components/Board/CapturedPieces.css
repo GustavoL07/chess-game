@@ -1,0 +1,47 @@
+.captured {
+  display: flex;
+  align-items: center;
+  min-height: 30px; /* reserva a altura para o layout não pular a cada captura */
+}
+
+.captured.top {
+  grid-column: 2;
+  grid-row: 1;
+  margin-bottom: 6px;
+}
+
+.captured.bottom {
+  grid-column: 2;
+  grid-row: 4;
+  margin-top: 6px;
+}
+
+.captured-group {
+  display: flex;
+}
+
+.captured-group + .captured-group {
+  margin-left: 4px;
+}
+
+.captured-group img {
+  width: 24px;
+  height: 24px;
+  margin-left: -8px; /* sobreposição entre peças do mesmo tipo */
+  object-fit: contain;
+}
+
+.captured-group img:first-child {
+  margin-left: 0;
+}
+
+.captured-advantage {
+  margin-left: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+:root[data-hide-captured] .captured {
+  display: none;
+}

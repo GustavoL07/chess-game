@@ -40,6 +40,7 @@ export function useSettings() {
     root.toggleAttribute("data-hide-hint", !settings.showHint);
     root.toggleAttribute("data-hide-coordinates", !settings.showCoordinates);
     root.toggleAttribute("data-hide-last-move", !settings.showLastMove);
+    root.toggleAttribute("data-hide-captured", !settings.showCaptured);
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));

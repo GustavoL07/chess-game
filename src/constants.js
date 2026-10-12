@@ -15,6 +15,7 @@ export const DEFAULT_SETTINGS = {
   showSelected: true,
   selectedColor: "#ffea00",
   showCaptures: true,
+  showCaptured: true,
   captureColor: "#ff4d4d",
   showHint: true,
   hintColor: "#4da3ff",
