@@ -19,6 +19,8 @@ export const DEFAULT_SETTINGS = {
   showHint: true,
   hintColor: "#4da3ff",
   showCoordinates: true,
+  showLastMove: true,
+  lastMoveColor: "#f5c542",
 };
 
 export const BOARD_THEMES = [

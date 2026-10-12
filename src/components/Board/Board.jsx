@@ -18,6 +18,7 @@ export default function Board({
   viewOnly,
   locked,
   lastMove,
+  highlightMove,
   flipped,
   hint,
   pieceSet,
@@ -172,6 +173,8 @@ export default function Board({
                 isSelected={selectedSquare === square}
                 isMovable={movableSquares.has(square)}
                 isCapturable={capturableSquares.has(square)}
+                isLastFrom={highlightMove?.from === square}
+                isLastTo={highlightMove?.to === square}
                 isHintFrom={!viewOnly && hint?.from === square}
                 isHintTo={!viewOnly && hint?.to === square}
                 isInCheck={

@@ -32,12 +32,14 @@ export function useSettings() {
     style.setProperty("--select-color", settings.selectedColor);
     style.setProperty("--capture-color", settings.captureColor);
     style.setProperty("--hint-color", settings.hintColor);
+    style.setProperty("--last-move", settings.lastMoveColor);
 
     root.toggleAttribute("data-hide-move-hints", !settings.showMoveHints);
     root.toggleAttribute("data-hide-selected", !settings.showSelected);
     root.toggleAttribute("data-hide-captures", !settings.showCaptures);
     root.toggleAttribute("data-hide-hint", !settings.showHint);
     root.toggleAttribute("data-hide-coordinates", !settings.showCoordinates);
+    root.toggleAttribute("data-hide-last-move", !settings.showLastMove);
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));

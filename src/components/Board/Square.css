@@ -128,3 +128,22 @@
 .square img.in-check {
   filter: drop-shadow(0 0 10px var(--board-check));
 }
+
+.square.last-from {
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--last-move) 35%, transparent),
+    color-mix(in srgb, var(--last-move) 35%, transparent)
+  );
+}
+
+.square.last-to {
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--last-move) 50%, transparent),
+    color-mix(in srgb, var(--last-move) 50%, transparent)
+  );
+}
+
+:root[data-hide-last-move] .square.last-from,
+:root[data-hide-last-move] .square.last-to {
+  background-image: none;
+}

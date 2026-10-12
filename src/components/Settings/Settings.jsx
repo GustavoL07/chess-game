@@ -176,6 +176,14 @@ export default function Settings({
             {tab === "highlights" && (
               <div className="setting-group">
                 <ToggleRow
+                  label="Last move"
+                  description="Marks the squares of the previous move"
+                  enabled={settings.showLastMove}
+                  color={settings.lastMoveColor}
+                  onToggle={(v) => onChange("showLastMove", v)}
+                  onColor={(v) => onChange("lastMoveColor", v)}
+                />
+                <ToggleRow
                   label="Possible moves"
                   description="Dots on the squares a piece can reach"
                   enabled={settings.showMoveHints}

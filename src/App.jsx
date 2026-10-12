@@ -110,6 +110,7 @@ export default function App() {
         viewOnly={viewOnly}
         locked={ai.thinking || game.turn() !== playerColor}
         lastMove={chess.lastMove}
+        highlightMove={chess.highlightMove}
         flipped={(playerColor === "b") !== manualFlip}
         hint={ai.hint}
         pieceSet={settings.pieceSet}

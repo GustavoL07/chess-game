@@ -7,6 +7,8 @@ export default function Square({
   isSelected,
   isMovable,
   isCapturable,
+  isLastFrom,
+  isLastTo,
   isHintFrom,
   isHintTo,
   isInCheck,
@@ -22,6 +24,8 @@ export default function Square({
     moveStyle && "has-moving",
     isMovable && "movable",
     isCapturable && "capturable",
+    isLastFrom && "last-from",
+    isLastTo && "last-to",
     isHintFrom && "hint-from",
     isHintTo && "hint-to",
   ]
