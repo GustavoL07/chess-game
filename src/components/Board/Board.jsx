@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Chess } from "chess.js";
 import {
+  getPieceImage,
   getSquareColor,
   toSquareNotation,
   squareToPosition,
@@ -13,6 +15,7 @@ import "./Board.css";
 
 const INDICES = [0, 1, 2, 3, 4, 5, 6, 7];
 const EMPTY_CAPTURED = { w: [], b: [] };
+const DRAG_THRESHOLD = 4; // px de movimento até um clique virar arrasto
 
 export default function Board({
   game,
@@ -28,20 +31,38 @@ export default function Board({
   captured = EMPTY_CAPTURED,
   materialDiff = 0,
   annotationsEnabled = true,
+  dragEnabled = true,
 }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
   // promoção aguardando escolha: { from, to, color }
   const [pendingPromotion, setPendingPromotion] = useState(null);
 
-  // setas e círculos desenhados com o botão direito: { from, to } (from === to = círculo)
   const boardRef = useRef(null);
+
+  // setas e círculos desenhados com o botão direito: { from, to } (from === to = círculo)
   const [annotations, setAnnotations] = useState([]);
   const [drawing, setDrawing] = useState(null);
 
-  // qualquer mudança de posição apaga as marcações
+  // arrastar e soltar. O gesto fica num ref (a posição muda a cada movimento do
+  // mouse e não deve redesenhar o tabuleiro); só o início/fim e a casa sob o
+  // ponteiro viram estado.
+  const dragRef = useRef(null);
+  const ghostRef = useRef(null);
+  const suppressClickRef = useRef(false);
+  const [dragging, setDragging] = useState(null); // { from, piece, size }
+  const [dragOver, setDragOver] = useState(null); // casa sob o ponteiro
+
+  function cancelDrag() {
+    dragRef.current = null;
+    setDragging(null);
+    setDragOver(null);
+  }
+
+  // qualquer mudança de posição apaga as marcações e interrompe um arrasto
   useEffect(() => {
     setAnnotations([]);
     setDrawing(null);
+    cancelDrag();
   }, [fen]);
 
   // desligar o recurso em Settings também limpa o que estava desenhado
@@ -62,7 +83,7 @@ export default function Board({
     setPendingPromotion(null);
   }, [fen, viewOnly]);
 
-  // Esc cancela a escolha
+  // Esc cancela a escolha da promoção
   useEffect(() => {
     if (!pendingPromotion) return;
     function onKey(e) {
@@ -71,6 +92,31 @@ export default function Board({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [pendingPromotion]);
+
+  // Esc cancela o arrasto: a peça volta e o soltar seguinte não faz nada
+  useEffect(() => {
+    if (!dragging) return;
+    function onKey(e) {
+      if (e.key !== "Escape") return;
+      if (dragRef.current) dragRef.current.cancelled = true;
+      setDragging(null);
+      setDragOver(null);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [dragging]);
+
+  // posiciona a peça que acompanha o cursor (direto no DOM, sem re-render)
+  function positionGhost() {
+    const drag = dragRef.current;
+    if (!drag || !ghostRef.current) return;
+    ghostRef.current.style.transform = `translate(${drag.x}px, ${drag.y}px) translate(-50%, -50%)`;
+  }
+
+  // a peça acabou de aparecer: coloca no lugar antes de pintar a tela
+  useLayoutEffect(() => {
+    if (dragging) positionGhost();
+  }, [dragging]);
 
   const displayGame = viewOnly ? new Chess(fen) : game;
   const board = displayGame.board();
@@ -97,7 +143,30 @@ export default function Board({
     setSelectedSquare(isOwn ? square : null);
   }
 
+  // Tenta jogar from -> to. Devolve false se o lance não é legal.
+  // animate: false quando a peça já foi levada até a casa (arrastar e soltar).
+  function tryMove(from, to, { animate = true } = {}) {
+    const candidates = game
+      .moves({ square: from, verbose: true })
+      .filter((m) => m.to === to);
+
+    if (candidates.length === 0) return false;
+
+    // promoção: espera o jogador escolher a peça
+    if (candidates[0].promotion) {
+      setPendingPromotion({ from, to, color: game.turn() });
+      return true;
+    }
+
+    const move = game.move({ from, to });
+    setSelectedSquare(null);
+    onMove(move, { animate });
+    return true;
+  }
+
   function handleSquareClick(rowIndex, colIndex) {
+    // o clique que o navegador dispara ao soltar um arrasto não conta
+    if (suppressClickRef.current) return;
     if (viewOnly || locked || pendingPromotion) return;
 
     const targetSquare = toSquareNotation(rowIndex, colIndex);
@@ -113,29 +182,10 @@ export default function Board({
       return;
     }
 
-    const candidates = game
-      .moves({ square: selectedSquare, verbose: true })
-      .filter((m) => m.to === targetSquare);
-
     // lance ilegal: tenta trocar a seleção
-    if (candidates.length === 0) {
+    if (!tryMove(selectedSquare, targetSquare)) {
       selectIfOwn(targetSquare, piece);
-      return;
     }
-
-    // promoção: espera o jogador escolher a peça
-    if (candidates[0].promotion) {
-      setPendingPromotion({
-        from: selectedSquare,
-        to: targetSquare,
-        color: game.turn(),
-      });
-      return;
-    }
-
-    const move = game.move({ from: selectedSquare, to: targetSquare });
-    setSelectedSquare(null);
-    onMove(move);
   }
 
   function handlePromotionPick(pieceType) {
@@ -152,37 +202,127 @@ export default function Board({
     }
   }
 
-  // casa sob o ponteiro (considera o tabuleiro girado)
-  function squareFromPointer(e) {
+  // casa sob o ponteiro (considera o tabuleiro girado).
+  // strict: devolve null se o ponteiro está fora do tabuleiro.
+  function squareFromPointer(e, { strict = false } = {}) {
     const rect = boardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    if (strict && (x < 0 || x >= 1 || y < 0 || y >= 1)) return null;
+
     const clamp = (n) => Math.min(7, Math.max(0, n));
-    const col = clamp(Math.floor(((e.clientX - rect.left) / rect.width) * 8));
-    const row = clamp(Math.floor(((e.clientY - rect.top) / rect.height) * 8));
+    const col = clamp(Math.floor(x * 8));
+    const row = clamp(Math.floor(y * 8));
     return toSquareNotation(flipped ? 7 - row : row, flipped ? 7 - col : col);
   }
 
-  function handleBoardPointerDown(e) {
-    if (!annotationsEnabled) return;
+  // pressionou sobre uma peça sua: pode virar um arrasto se o ponteiro se mover
+  function startDragCandidate(e) {
+    if (!dragEnabled || !e.isPrimary || viewOnly || locked || pendingPromotion)
+      return;
 
-    // clique esquerdo apaga as marcações (e segue o fluxo normal do clique)
+    const from = squareFromPointer(e);
+    const piece = game.get(from);
+    if (!piece || piece.color !== game.turn()) return;
+
+    dragRef.current = {
+      pointerId: e.pointerId,
+      from,
+      piece,
+      startX: e.clientX,
+      startY: e.clientY,
+      x: e.clientX,
+      y: e.clientY,
+      active: false,
+      cancelled: false,
+    };
+  }
+
+  function handleBoardPointerDown(e) {
     if (e.button === 0) {
-      setAnnotations((prev) => (prev.length ? [] : prev));
+      // clique esquerdo apaga as marcações e pode iniciar um arrasto
+      if (annotationsEnabled)
+        setAnnotations((prev) => (prev.length ? [] : prev));
+      startDragCandidate(e);
       return;
     }
 
-    if (e.button !== 2) return;
+    if (!annotationsEnabled || e.button !== 2) return;
     const square = squareFromPointer(e);
     e.currentTarget.setPointerCapture(e.pointerId); // acompanha o ponteiro fora do tabuleiro
     setDrawing({ from: square, to: square });
   }
 
   function handleBoardPointerMove(e) {
+    const drag = dragRef.current;
+
+    if (drag && drag.pointerId === e.pointerId) {
+      // botão já foi solto fora da janela: descarta o gesto
+      if (!(e.buttons & 1)) {
+        cancelDrag();
+        return;
+      }
+      if (drag.cancelled) return;
+
+      drag.x = e.clientX;
+      drag.y = e.clientY;
+
+      if (!drag.active) {
+        const moved = Math.hypot(
+          e.clientX - drag.startX,
+          e.clientY - drag.startY,
+        );
+        if (moved < DRAG_THRESHOLD) return;
+
+        // virou arrasto: seleciona a peça (mostra os lances) e cria a peça fantasma.
+        // A captura do ponteiro só entra agora; antes disso ela mudaria o alvo do clique.
+        drag.active = true;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setSelectedSquare(drag.from);
+        setDragging({
+          from: drag.from,
+          piece: drag.piece,
+          size: boardRef.current.getBoundingClientRect().width / 8,
+        });
+      }
+
+      positionGhost();
+      const over = squareFromPointer(e, { strict: true });
+      setDragOver((prev) => (prev === over ? prev : over));
+      return;
+    }
+
     if (!drawing) return;
     const square = squareFromPointer(e);
     if (square !== drawing.to) setDrawing({ ...drawing, to: square });
   }
 
   function handleBoardPointerUp(e) {
+    const drag = dragRef.current;
+
+    if (drag && drag.pointerId === e.pointerId) {
+      dragRef.current = null;
+
+      if (drag.active) {
+        // o navegador ainda dispara um "click" depois de soltar: ignora-o
+        suppressClickRef.current = true;
+        setTimeout(() => {
+          suppressClickRef.current = false;
+        }, 0);
+
+        const target = squareFromPointer(e, { strict: true });
+        setDragging(null);
+        setDragOver(null);
+
+        if (!drag.cancelled && target && target !== drag.from) {
+          // a peça já está na casa, então o lance não precisa deslizar
+          tryMove(drag.from, target, { animate: false });
+        }
+        return;
+      }
+      // sem arrasto era um clique comum: o fluxo do onClick cuida dele
+    }
+
     if (!drawing || e.button !== 2) return;
     const { from, to } = drawing;
     setDrawing(null);
@@ -196,8 +336,20 @@ export default function Board({
     });
   }
 
+  function handleBoardPointerCancel() {
+    cancelDrag();
+    setDrawing(null);
+  }
+
   function getMoveStyle(square, rowIndex, colIndex) {
-    if (viewOnly || !lastMove || lastMove.to !== square) return undefined;
+    if (
+      viewOnly ||
+      !lastMove ||
+      lastMove.to !== square ||
+      lastMove.animate === false
+    ) {
+      return undefined;
+    }
     const from = squareToPosition(lastMove.from);
     return {
       "--dx": (from.col - colIndex) * dir,
@@ -244,18 +396,20 @@ export default function Board({
       </div>
 
       <div
-        className="board"
+        className={`board ${dragging ? "dragging" : ""}`}
         ref={boardRef}
         onPointerDown={handleBoardPointerDown}
         onPointerMove={handleBoardPointerMove}
         onPointerUp={handleBoardPointerUp}
-        onPointerCancel={() => setDrawing(null)}
+        onPointerCancel={handleBoardPointerCancel}
         onContextMenu={(e) => annotationsEnabled && e.preventDefault()}
       >
         {indices.map((rowIndex) =>
           indices.map((colIndex) => {
             const piece = board[rowIndex][colIndex];
             const square = toSquareNotation(rowIndex, colIndex);
+            const isLegalTarget =
+              movableSquares.has(square) || capturableSquares.has(square);
 
             return (
               <Square
@@ -275,6 +429,8 @@ export default function Board({
                   piece.type === "k" &&
                   piece.color === turn
                 }
+                isDragSource={dragging?.from === square}
+                isDragOver={dragOver === square && isLegalTarget}
                 moveStyle={
                   piece ? getMoveStyle(square, rowIndex, colIndex) : undefined
                 }
@@ -319,6 +475,19 @@ export default function Board({
         advantage={advantageOf(bottomColor)}
         pieceSet={pieceSet}
       />
+
+      {dragging &&
+        createPortal(
+          <img
+            ref={ghostRef}
+            className="drag-ghost"
+            src={getPieceImage(dragging.piece, pieceSet)}
+            style={{ width: dragging.size, height: dragging.size }}
+            alt=""
+            draggable={false}
+          />,
+          document.body,
+        )}
     </div>
   );
 }

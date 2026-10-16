@@ -267,6 +267,12 @@ export default function Settings({
                   enabled={settings.showMoveIcons}
                   onToggle={(v) => onChange("showMoveIcons", v)}
                 />
+                <ToggleRow
+                  label="Drag and drop"
+                  description="Move pieces by dragging, besides clicking"
+                  enabled={settings.dragAndDrop}
+                  onToggle={(v) => onChange("dragAndDrop", v)}
+                />
               </div>
             )}
           </div>

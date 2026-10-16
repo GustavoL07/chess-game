@@ -12,6 +12,8 @@ export default function Square({
   isHintFrom,
   isHintTo,
   isInCheck,
+  isDragSource,
+  isDragOver,
   moveStyle,
   moveKey,
   onClick,
@@ -28,6 +30,7 @@ export default function Square({
     isLastTo && "last-to",
     isHintFrom && "hint-from",
     isHintTo && "hint-to",
+    isDragOver && "drag-over",
   ]
     .filter(Boolean)
     .join(" ");
@@ -37,6 +40,7 @@ export default function Square({
     isHintFrom && "hint-piece",
     moveStyle && "moving",
     isInCheck && "in-check",
+    isDragSource && "drag-source",
   ]
     .filter(Boolean)
     .join(" ");
@@ -50,6 +54,7 @@ export default function Square({
           style={moveStyle}
           className={pieceClasses}
           alt={`${piece.color} ${piece.type}`}
+          draggable={false}
         />
       )}
     </div>

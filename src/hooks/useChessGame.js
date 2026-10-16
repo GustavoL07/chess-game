@@ -23,13 +23,17 @@ export function useChessGame() {
       }));
   }
 
-  // Chame depois de um game.move() bem-sucedido
-  function applyMove(move) {
+  function applyMove(move, { animate = true } = {}) {
     setHistory(game.history());
     setMoveHistory(readMoves());
     setFenHistory((prev) => [...prev, game.fen()]);
     setViewPlay(null);
-    setLastMove({ from: move.from, to: move.to, id: ++moveId.current });
+    setLastMove({
+      from: move.from,
+      to: move.to,
+      id: ++moveId.current,
+      animate,
+    });
   }
 
   function goToPlay(play) {

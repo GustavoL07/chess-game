@@ -168,6 +168,7 @@ export default function App() {
         captured={chess.captured}
         materialDiff={chess.materialDiff}
         annotationsEnabled={settings.showAnnotations}
+        dragEnabled={settings.dragAndDrop}
       />
 
       <History

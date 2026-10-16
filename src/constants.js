@@ -26,6 +26,7 @@ export const DEFAULT_SETTINGS = {
   annotationColor: "#b36bff",
   showMoveIcons: false,
   historyCollapsed: false,
+  dragAndDrop: true,
 };
 
 export const BOARD_THEMES = [
