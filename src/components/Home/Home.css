@@ -1,0 +1,110 @@
+/* Tela de entrada. .modal, .start-button e .secondary-button vêm de styles/modal.css */
+.home {
+  position: fixed;
+  inset: 0;
+  z-index: 30; /* acima do jogo, abaixo dos modais (100) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+  background: var(--page-bg);
+}
+
+/* tabuleiro de fundo, grande e borrado */
+.home-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: blur(6px);
+  opacity: 0.55;
+  transform: scale(1.06); /* esconde a borda clara que o blur deixa nas pontas */
+  pointer-events: none;
+}
+
+.home-bg .board {
+  --board-size: min(92vmin, 820px);
+  box-shadow: none;
+}
+
+/* escurece as bordas e dá foco ao menu */
+.home-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0.2) 0%,
+    color-mix(in srgb, var(--page-bg) 80%, transparent) 100%
+  );
+  pointer-events: none;
+}
+
+/* cartão do menu */
+.home-card {
+  position: relative;
+  max-width: 380px;
+  text-align: center;
+}
+
+.home-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.home-logo img {
+  width: 56px;
+  height: 56px;
+}
+
+.home-logo img + img {
+  margin-left: -8px;
+}
+
+.home-title {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: 0.02em;
+}
+
+.home-subtitle {
+  margin: 4px 0 26px;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.home-card .secondary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.home-card .secondary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.home-card .secondary-button:disabled:hover {
+  background: transparent;
+}
+
+.home-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg-raised);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* quem prefere menos movimento vê o tabuleiro sem a animação das peças */
+@media (prefers-reduced-motion: reduce) {
+  .home-bg .square img.moving {
+    animation: none;
+  }
+}

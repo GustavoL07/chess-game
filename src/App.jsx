@@ -11,6 +11,7 @@ import GameEnd from "./components/GameEnd/GameEnd";
 import Settings from "./components/Settings/Settings";
 import { useSettings } from "./hooks/useSettings";
 import gear from "./assets/images/gear.svg";
+import Home from "./components/Home/Home";
 
 function getStatus({ started, result, hinting, thinking, viewOnly }) {
   if (!started) return "";
@@ -22,7 +23,8 @@ function getStatus({ started, result, hinting, thinking, viewOnly }) {
 }
 
 export default function App() {
-  const [started, setStarted] = useState(false);
+  const [phase, setPhase] = useState("home"); // "home" | "setup" | "playing"
+  const started = phase === "playing"; // o resto do App continua usando `started`;
   const [endDismissed, setEndDismissed] = useState(false);
   const [playerColor, setPlayerColor] = useState("w");
   const [level, setLevel] = useState(DEFAULT_LEVEL);
@@ -72,7 +74,7 @@ export default function App() {
       color === "random" ? (Math.random() < 0.5 ? "w" : "b") : color;
     setPlayerColor(resolved);
     setLevel(level);
-    setStarted(true);
+    setPhase("playing");
   }
 
   function handleNewGame() {
@@ -80,7 +82,7 @@ export default function App() {
     ai.newGame();
     setEndDismissed(false);
     setManualFlip(false);
-    setStarted(false);
+    setPhase("setup");
   }
 
   function handleUndo() {
@@ -117,17 +119,31 @@ export default function App() {
 
   return (
     <div className="app">
-      <button
-        type="button"
-        className="settings-fab"
-        onClick={() => setShowSettings(true)}
-        aria-label="Settings"
-      >
-        <img className="gear-icon" src={gear} alt="" />
-      </button>
+      {phase !== "home" && (
+        <button
+          type="button"
+          className="settings-fab"
+          onClick={() => setShowSettings(true)}
+          aria-label="Settings"
+        >
+          <img className="gear-icon" src={gear} alt="settings" />
+        </button>
+      )}
 
-      {!started && (
-        <GameStart onStart={handleStart} pieceSet={settings.pieceSet} />
+      {phase === "home" && (
+        <Home
+          pieceSet={settings.pieceSet}
+          onNewGame={() => setPhase("setup")}
+          onSettings={() => setShowSettings(true)}
+        />
+      )}
+
+      {phase === "setup" && (
+        <GameStart
+          onStart={handleStart}
+          onBack={() => setPhase("home")}
+          pieceSet={settings.pieceSet}
+        />
       )}
 
       {showSettings && (

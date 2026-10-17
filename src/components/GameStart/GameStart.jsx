@@ -10,7 +10,7 @@ function levelLabel(level) {
   return "Master";
 }
 
-export default function GameStart({ onStart, pieceSet }) {
+export default function GameStart({ onStart, onBack, pieceSet }) {
   const [color, setColor] = useState("w");
   const [level, setLevel] = useState(10);
 
@@ -81,6 +81,12 @@ export default function GameStart({ onStart, pieceSet }) {
         <button type="button" className="start-button" onClick={handleStart}>
           Start Game
         </button>
+
+        {onBack && (
+          <button type="button" className="secondary-button" onClick={onBack}>
+            Back
+          </button>
+        )}
       </div>
     </div>
   );
