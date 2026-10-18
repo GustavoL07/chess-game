@@ -18,6 +18,8 @@ export default function History({
   moveIcons = false,
   collapsed = false,
   onToggleCollapse,
+  reviewing = false,
+  onExit,
 }) {
   const listRef = useRef(null);
   const movesGrouped = [];
@@ -32,13 +34,31 @@ export default function History({
     });
   }
 
-  // rola até o último lance (e também ao reabrir o painel)
+  // mantém o lance ativo à vista: ao jogar, ao navegar e ao reabrir o painel
   useEffect(() => {
-    listRef.current?.scrollTo({
-      top: listRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [moves, collapsed]);
+    const list = listRef.current;
+    if (!list) return;
+
+    const active = list.querySelector(".move-cell.active");
+    if (!active) {
+      list.scrollTo({ top: 0, behavior: "smooth" }); // posição inicial
+      return;
+    }
+
+    const listBox = list.getBoundingClientRect();
+    const activeBox = active.getBoundingClientRect();
+    if (activeBox.top < listBox.top) {
+      list.scrollTo({
+        top: list.scrollTop - (listBox.top - activeBox.top) - 8,
+        behavior: "smooth",
+      });
+    } else if (activeBox.bottom > listBox.bottom) {
+      list.scrollTo({
+        top: list.scrollTop + (activeBox.bottom - listBox.bottom) + 8,
+        behavior: "smooth",
+      });
+    }
+  }, [moves, currentPlay, collapsed]);
 
   const atStart = currentPlay === 0;
   const atEnd = currentPlay === moves.length;
@@ -179,16 +199,28 @@ export default function History({
               <span className="action-icon">⇅</span>
               <span>Flip</span>
             </button>
-            <button
-              type="button"
-              className={`action-btn ${confirmingRestart ? "danger" : ""}`}
-              onClick={onRestart}
-              title="Restart (R)"
-              aria-keyshortcuts="R"
-            >
-              <span className="action-icon">↻</span>
-              <span>{confirmingRestart ? "Sure?" : "Restart"}</span>
-            </button>
+            {reviewing ? (
+              <button
+                type="button"
+                className="action-btn"
+                onClick={onExit}
+                title="Exit review"
+              >
+                <span className="action-icon">✕</span>
+                <span>Exit</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={`action-btn ${confirmingRestart ? "danger" : ""}`}
+                onClick={onRestart}
+                title="Restart (R)"
+                aria-keyshortcuts="R"
+              >
+                <span className="action-icon">↻</span>
+                <span>{confirmingRestart ? "Sure?" : "Restart"}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

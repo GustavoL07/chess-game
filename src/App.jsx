@@ -1,19 +1,29 @@
 import "./App.css";
 import { useState, useEffect } from "react";
-import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useChessGame } from "./hooks/useChessGame";
 import { useAI } from "./hooks/useAI";
+import { useSettings } from "./hooks/useSettings";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { useGameRecorder } from "./hooks/useGameRecorder";
 import { DEFAULT_LEVEL } from "./constants";
+import gear from "./assets/images/gear.svg";
 import Board from "./components/Board/Board";
 import History from "./components/History/History";
+import Home from "./components/Home/Home";
 import GameStart from "./components/GameStart/GameStart";
 import GameEnd from "./components/GameEnd/GameEnd";
 import Settings from "./components/Settings/Settings";
-import { useSettings } from "./hooks/useSettings";
-import gear from "./assets/images/gear.svg";
-import Home from "./components/Home/Home";
+import Stats from "./components/Stats/Stats";
 
-function getStatus({ started, result, hinting, thinking, viewOnly }) {
+function getStatus({
+  reviewing,
+  started,
+  result,
+  hinting,
+  thinking,
+  viewOnly,
+}) {
+  if (reviewing) return "Game review";
   if (!started) return "";
   if (result) return "Game over";
   if (hinting) return "Calculating hint…";
@@ -23,13 +33,17 @@ function getStatus({ started, result, hinting, thinking, viewOnly }) {
 }
 
 export default function App() {
-  const [phase, setPhase] = useState("home"); // "home" | "setup" | "playing"
-  const started = phase === "playing"; // o resto do App continua usando `started`;
+  // "home" (menu) | "setup" (nova partida) | "playing" | "review" (partida antiga)
+  const [phase, setPhase] = useState("home");
+  const started = phase === "playing";
+  const reviewing = phase === "review";
+
   const [endDismissed, setEndDismissed] = useState(false);
   const [playerColor, setPlayerColor] = useState("w");
   const [level, setLevel] = useState(DEFAULT_LEVEL);
   const [manualFlip, setManualFlip] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showStats, setShowStats] = useState(false);
   const [confirmingRestart, setConfirmingRestart] = useState(false);
 
   const {
@@ -42,6 +56,7 @@ export default function App() {
     savePreset,
     deletePreset,
   } = useSettings();
+
   const chess = useChessGame();
   const { game, history, result, viewOnly } = chess;
 
@@ -54,20 +69,15 @@ export default function App() {
     onMove: chess.applyMove,
   });
 
+  // grava a partida quando ela termina
+  useGameRecorder({ started, result, history, playerColor, level });
+
+  // a confirmação do reinício expira sozinha
   useEffect(() => {
     if (!confirmingRestart) return;
     const id = setTimeout(() => setConfirmingRestart(false), 3000);
     return () => clearTimeout(id);
   }, [confirmingRestart]);
-
-  function requestRestart() {
-    if (history.length > 0 && !confirmingRestart) {
-      setConfirmingRestart(true);
-      return;
-    }
-    setConfirmingRestart(false);
-    handleNewGame();
-  }
 
   function handleStart({ color, level }) {
     const resolved =
@@ -91,22 +101,52 @@ export default function App() {
     setEndDismissed(false);
   }
 
+  function requestRestart() {
+    if (history.length > 0 && !confirmingRestart) {
+      setConfirmingRestart(true);
+      return;
+    }
+    setConfirmingRestart(false);
+    handleNewGame();
+  }
+
   function toggleHistory() {
     update("historyCollapsed", !settings.historyCollapsed);
   }
 
+  // abre uma partida gravada: tabuleiro na posição inicial e histórico completo
+  function handleOpenGame(record) {
+    chess.load(record.moves);
+    setPlayerColor(record.playerColor);
+    setManualFlip(false);
+    setShowStats(false);
+    setPhase("review");
+  }
+
+  // sai da revisão e volta à lista de partidas
+  function handleExitReview() {
+    chess.reset();
+    setPhase("home");
+    setShowStats(true);
+  }
+
   const isPlayerTurn = started && !result && game.turn() === playerColor;
-  const minUndoLength = playerColor === "b" ? 1 : 0;
+  const minUndoLength = playerColor === "b" ? 1 : 0; // IA abre a partida de brancas
   const canUndo = started && !ai.thinking && history.length > minUndoLength;
   const canHint = isPlayerTurn && !ai.thinking && !ai.hinting && !viewOnly;
 
-  const modalOpen =
-    !started || showSettings || Boolean(result && !endDismissed);
+  const gameEndVisible = started && Boolean(result) && !endDismissed;
+  const inGameScreen = started || reviewing;
+
+  // atalhos funcionam no jogo e na revisão, desde que não haja janela aberta
+  const shortcutsEnabled =
+    inGameScreen && !showSettings && !showStats && !gameEndVisible;
+
   useKeyboardShortcuts(
     {
       h: () => canHint && ai.requestHint(),
       u: () => canUndo && handleUndo(),
-      r: requestRestart,
+      r: () => !reviewing && requestRestart(),
       f: () => setManualFlip((flipped) => !flipped),
       c: toggleHistory,
       ArrowLeft: () => chess.goToPlay(chess.currentPlay - 1),
@@ -114,7 +154,7 @@ export default function App() {
       ArrowUp: () => chess.goToPlay(0),
       ArrowDown: () => chess.goToPlay(history.length),
     },
-    !modalOpen,
+    shortcutsEnabled,
   );
 
   return (
@@ -134,6 +174,7 @@ export default function App() {
         <Home
           pieceSet={settings.pieceSet}
           onNewGame={() => setPhase("setup")}
+          onStats={() => setShowStats(true)}
           onSettings={() => setShowSettings(true)}
         />
       )}
@@ -143,6 +184,14 @@ export default function App() {
           onStart={handleStart}
           onBack={() => setPhase("home")}
           pieceSet={settings.pieceSet}
+        />
+      )}
+
+      {showStats && (
+        <Stats
+          pieceSet={settings.pieceSet}
+          onOpenGame={handleOpenGame}
+          onClose={() => setShowStats(false)}
         />
       )}
 
@@ -160,7 +209,7 @@ export default function App() {
         />
       )}
 
-      {started && result && !endDismissed && (
+      {gameEndVisible && (
         <GameEnd
           result={result}
           playerColor={playerColor}
@@ -175,7 +224,7 @@ export default function App() {
         fen={chess.fen}
         onMove={chess.applyMove}
         viewOnly={viewOnly}
-        locked={ai.thinking || game.turn() !== playerColor}
+        locked={ai.thinking || game.turn() !== playerColor || reviewing}
         lastMove={chess.lastMove}
         highlightMove={chess.highlightMove}
         flipped={(playerColor === "b") !== manualFlip}
@@ -193,12 +242,13 @@ export default function App() {
         onSelect={chess.goToPlay}
         onUndo={handleUndo}
         onHint={ai.requestHint}
-        onFlip={() => setManualFlip((f) => !f)}
+        onFlip={() => setManualFlip((flipped) => !flipped)}
         onRestart={requestRestart}
         confirmingRestart={confirmingRestart}
         canUndo={canUndo}
         canHint={canHint}
         status={getStatus({
+          reviewing,
           started,
           result,
           hinting: ai.hinting,
@@ -209,6 +259,8 @@ export default function App() {
         moveIcons={settings.showMoveIcons}
         collapsed={settings.historyCollapsed}
         onToggleCollapse={toggleHistory}
+        reviewing={reviewing}
+        onExit={handleExitReview}
       />
     </div>
   );

@@ -3,6 +3,7 @@ import { Chess } from "chess.js";
 import { getResult } from "../utils/result";
 import { getCaptured, getMaterialDiff } from "../utils/material";
 
+// Estado da partida: tabuleiro, histórico, navegação e resultado.
 export function useChessGame() {
   const [game] = useState(() => new Chess());
   const [history, setHistory] = useState([]);
@@ -23,6 +24,8 @@ export function useChessGame() {
       }));
   }
 
+  // Chame depois de um game.move() bem-sucedido
+  // animate: false quando a peça já foi levada até a casa (arrastar e soltar)
   function applyMove(move, { animate = true } = {}) {
     setHistory(game.history());
     setMoveHistory(readMoves());
@@ -55,6 +58,23 @@ export function useChessGame() {
     setLastMove(null);
   }
 
+  // Carrega uma partida terminada para revisão: o histórico já vem completo e a
+  // visualização começa na posição inicial.
+  function load(sanMoves) {
+    game.reset();
+    const fens = [game.fen()];
+    for (const san of sanMoves) {
+      game.move(san);
+      fens.push(game.fen());
+    }
+
+    setHistory(game.history());
+    setMoveHistory(readMoves());
+    setFenHistory(fens);
+    setViewPlay(sanMoves.length > 0 ? 0 : null);
+    setLastMove(null);
+  }
+
   function reset() {
     game.reset();
     setHistory([]);
@@ -70,9 +90,12 @@ export function useChessGame() {
   return {
     game,
     history,
-    lastMove,
+    lastMove, // lance mais recente (usado na animação)
+    // lance da posição exibida: acompanha a navegação pelo histórico
     highlightMove: currentPlay > 0 ? moveHistory[currentPlay - 1] : null,
+    // peças capturadas por cada cor até a posição exibida: { w: [...], b: [...] }
     captured: getCaptured(moveHistory, currentPlay),
+    // vantagem de material das brancas na posição exibida (negativa = pretas à frente)
     materialDiff: getMaterialDiff(displayedFen),
     currentPlay,
     viewOnly: viewPlay !== null,
@@ -81,6 +104,7 @@ export function useChessGame() {
     applyMove,
     goToPlay,
     undo,
+    load,
     reset,
   };
 }

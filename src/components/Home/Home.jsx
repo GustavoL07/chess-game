@@ -5,7 +5,7 @@ import { getPieceUrl } from "../../utils/pieceSets";
 import "./Home.css";
 
 // Tela de entrada: partida de fundo (borrada) e o menu principal.
-// onStats ainda não existe: sem ele o botão aparece desativado, com "Soon".
+// onStats abre a janela de estatísticas; sem ele o botão aparece desativado, com "Soon".
 export default function Home({ pieceSet, onNewGame, onSettings, onStats }) {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const shortcutsButtonRef = useRef(null);
