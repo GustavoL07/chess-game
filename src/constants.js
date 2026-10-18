@@ -1,33 +1,8 @@
-import { DEFAULT_PIECE_SET } from "./utils/pieceSets";
+export { DEFAULT_SETTINGS, PRESET_KEYS } from "./settings/schema";
+
 export const DEFAULT_LEVEL = 10;
 export const AI_DELAY_MS = 600;
 export const HINT_SKILL = 20;
-
-export const DEFAULT_SETTINGS = {
-  pieceSet: DEFAULT_PIECE_SET,
-  pageBg: "#1f1e1b",
-  boardLight: "#ddd4c6",
-  boardDark: "#0d453e",
-  accent: "#165476",
-
-  showMoveHints: true,
-  moveHintColor: "#00ff00",
-  showSelected: true,
-  selectedColor: "#ffea00",
-  showCaptures: true,
-  showCaptured: true,
-  captureColor: "#ff4d4d",
-  showHint: true,
-  hintColor: "#4da3ff",
-  showCoordinates: true,
-  showLastMove: true,
-  lastMoveColor: "#f5c542",
-  showAnnotations: true,
-  annotationColor: "#b36bff",
-  showMoveIcons: false,
-  historyCollapsed: false,
-  dragAndDrop: true,
-};
 
 export const BOARD_THEMES = [
   { id: "forest", label: "Forest", light: "#ddd4c6", dark: "#0d453e" },
@@ -60,21 +35,6 @@ export const BOARD_THEMES = [
   { id: "candy", label: "Candy", light: "#f8dff0", dark: "#83b9e5" },
   { id: "volcano", label: "Volcano", light: "#f2d4bd", dark: "#873b2e" },
   { id: "arctic", label: "Arctic", light: "#eaf3f8", dark: "#527d99" },
-];
-
-// o que cada preset guarda (só aparência; interruptores não entram)
-export const PRESET_KEYS = [
-  "pieceSet",
-  "boardLight",
-  "boardDark",
-  "pageBg",
-  "accent",
-  "moveHintColor",
-  "selectedColor",
-  "captureColor",
-  "hintColor",
-  "lastMoveColor",
-  "annotationColor",
 ];
 
 export const MAX_SAVED_PRESETS = 3;

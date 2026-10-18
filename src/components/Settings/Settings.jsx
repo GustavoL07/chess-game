@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PIECE_SETS, getPieceUrl, formatSetName } from "../../utils/pieceSets";
 import { BOARD_THEMES } from "../../constants";
+import SettingGroup from "./SettingRows";
 import Presets from "./Presets";
 import "./Settings.css";
 
@@ -48,10 +49,11 @@ export default function Settings({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  // ao trocar de aba, volta ao topo
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: 0 });
   }, [tab]);
+
+  const rowProps = { settings, onChange };
 
   return (
     <div
@@ -141,21 +143,8 @@ export default function Settings({
 
             {tab === "board" && (
               <>
-                <h3 className="modal-subtitle">Grid</h3>
-                <div className="setting-group">
-                  <ToggleRow
-                    label="Square names"
-                    description="Letters and numbers around the board"
-                    enabled={settings.showCoordinates}
-                    onToggle={(v) => onChange("showCoordinates", v)}
-                  />
-                  <ToggleRow
-                    label="Captured pieces"
-                    description="Taken pieces and material advantage"
-                    enabled={settings.showCaptured}
-                    onToggle={(v) => onChange("showCaptured", v)}
-                  />
-                </div>
+                <SettingGroup tab="board" group="Grid" {...rowProps} />
+
                 <h3 className="modal-subtitle">Themes</h3>
                 <div className="theme-grid">
                   {BOARD_THEMES.map((theme) => {
@@ -180,100 +169,16 @@ export default function Settings({
                   })}
                 </div>
 
-                <h3 className="modal-subtitle">Custom colors</h3>
-                <div className="setting-group">
-                  <ColorRow
-                    label="Light squares"
-                    value={settings.boardLight}
-                    onChange={(v) => onChange("boardLight", v)}
-                  />
-                  <ColorRow
-                    label="Dark squares"
-                    value={settings.boardDark}
-                    onChange={(v) => onChange("boardDark", v)}
-                  />
-                </div>
+                <SettingGroup tab="board" group="Custom colors" {...rowProps} />
               </>
             )}
 
             {tab === "highlights" && (
-              <div className="setting-group">
-                <ToggleRow
-                  label="Last move"
-                  description="Marks the squares of the previous move"
-                  enabled={settings.showLastMove}
-                  color={settings.lastMoveColor}
-                  onToggle={(v) => onChange("showLastMove", v)}
-                  onColor={(v) => onChange("lastMoveColor", v)}
-                />
-                <ToggleRow
-                  label="Possible moves"
-                  description="Dots on the squares a piece can reach"
-                  enabled={settings.showMoveHints}
-                  color={settings.moveHintColor}
-                  onToggle={(v) => onChange("showMoveHints", v)}
-                  onColor={(v) => onChange("moveHintColor", v)}
-                />
-                <ToggleRow
-                  label="Selected piece"
-                  description="Outline and lift on the chosen piece"
-                  enabled={settings.showSelected}
-                  color={settings.selectedColor}
-                  onToggle={(v) => onChange("showSelected", v)}
-                  onColor={(v) => onChange("selectedColor", v)}
-                />
-                <ToggleRow
-                  label="Capturable pieces"
-                  description="Ring around pieces you can take"
-                  enabled={settings.showCaptures}
-                  color={settings.captureColor}
-                  onToggle={(v) => onChange("showCaptures", v)}
-                  onColor={(v) => onChange("captureColor", v)}
-                />
-                <ToggleRow
-                  label="AI hint"
-                  description="Piece to move and its target square"
-                  enabled={settings.showHint}
-                  color={settings.hintColor}
-                  onToggle={(v) => onChange("showHint", v)}
-                  onColor={(v) => onChange("hintColor", v)}
-                />
-                <ToggleRow
-                  label="Arrows and circles"
-                  description="Right-click to draw, left-click to clear"
-                  enabled={settings.showAnnotations}
-                  color={settings.annotationColor}
-                  onToggle={(v) => onChange("showAnnotations", v)}
-                  onColor={(v) => onChange("annotationColor", v)}
-                />
-              </div>
+              <SettingGroup tab="highlights" {...rowProps} />
             )}
 
             {tab === "interface" && (
-              <div className="setting-group">
-                <ColorRow
-                  label="Page background"
-                  value={settings.pageBg}
-                  onChange={(v) => onChange("pageBg", v)}
-                />
-                <ColorRow
-                  label="Accent color"
-                  value={settings.accent}
-                  onChange={(v) => onChange("accent", v)}
-                />
-                <ToggleRow
-                  label="Piece icons in moves"
-                  description="Show pieces as images instead of letters (Nf3)"
-                  enabled={settings.showMoveIcons}
-                  onToggle={(v) => onChange("showMoveIcons", v)}
-                />
-                <ToggleRow
-                  label="Drag and drop"
-                  description="Move pieces by dragging, besides clicking"
-                  enabled={settings.dragAndDrop}
-                  onToggle={(v) => onChange("dragAndDrop", v)}
-                />
-              </div>
+              <SettingGroup tab="interface" {...rowProps} />
             )}
           </div>
         </div>
@@ -287,52 +192,6 @@ export default function Settings({
           </button>
         </footer>
       </div>
-    </div>
-  );
-}
-
-function ColorRow({ label, value, onChange }) {
-  return (
-    <label className="setting-row">
-      <span className="setting-text">
-        <span className="setting-label">{label}</span>
-      </span>
-      <input
-        className="setting-color"
-        type="color"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </label>
-  );
-}
-
-function ToggleRow({ label, description, enabled, color, onToggle, onColor }) {
-  return (
-    <div className="setting-row">
-      <label className="setting-main">
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={(e) => onToggle(e.target.checked)}
-        />
-        <span className="toggle-track" />
-        <span className="setting-text">
-          <span className="setting-label">{label}</span>
-          <span className="setting-desc">{description}</span>
-        </span>
-      </label>
-
-      {onColor && (
-        <input
-          className="setting-color"
-          type="color"
-          value={color}
-          disabled={!enabled}
-          onChange={(e) => onColor(e.target.value)}
-          aria-label={`${label} color`}
-        />
-      )}
     </div>
   );
 }
